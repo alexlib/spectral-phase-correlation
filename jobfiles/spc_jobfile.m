@@ -25,7 +25,7 @@ DefaultJob.Parameters.Sets.ImagesPerSet = 50;
 % Case 1
 SegmentItem = DefaultJob;
 SegmentItem.SetType = 'lin';
-SegmentItem.CaseName = '2014-10-05_translation_only_04';
+SegmentItem.CaseName = '2014-10-05_translation_only_06';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 JOBLIST(1) = SegmentItem;
