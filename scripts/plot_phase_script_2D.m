@@ -22,6 +22,8 @@ numberFormat = ['%0' num2str(nDigits) '.0f'];
 regionHeight = JobFile.Parameters.RegionHeight;
 regionWidth = JobFile.Parameters.RegionWidth;
 
+% Particle image diameter
+particleDiameter = JobFile.Parameters.Processing.ParticleDiameter;
 
 % Data directory
 dataDir = fullfile(JobFile.ProjectRepository, 'analysis', 'data',...
@@ -52,37 +54,57 @@ parametersFilePath = fullfile(parametersDir, parametersFileName);
 % Image numbers
 imageNumbers = 1 : imagePerSet;
 
-% Number of images to plot
-nImages = length(imageNumbers);
-
 % Load parameters
 load(parametersFilePath);
 
 % Load images
 load(imageFilePath);
 
+% Size of the images
+[regionHeight, regionWidth, nImages] = size(imageMatrix1);
+
+% Make a Gaussian filter.
+spatialWindow = gaussianWindowFilter([regionHeight, regionWidth], [0.5 0.5], 'fraction');
+
+% Make RPC filter
+rpcFilter = spectralEnergyFilter(regionHeight, regionWidth, particleDiameter);
+
+% Make SPC filter
+spcFilter = rpcFilter;
+
+% Apodize the SPC filter 
+spc_cutoff_wavenumber = 2 / (pi * particleDiameter);
+spcFilter(spcFilter < spc_cutoff_wavenumber) = 0;
+
 % True translations
-TX = Parameters.TranslationX;
-TY = Parameters.TranslationY;
+TX_TRUE = Parameters.TranslationX;
+TY_TRUE = Parameters.TranslationY;
 
-% Print a display header.
-fprintf('%s\t%s\t%s\t%s\n-------------------\n', 'k','TY(k)', 'TX(k)', 'N');
+% Initialize vectors to hold results
+TY_SPC = zeros(1, nImages);
+TX_SPC = zeros(1, nImages);
 
-% Loop over the images and plot
-% measured and synthetic phase planes
+TY_RPC = zeros(1, nImages);
+TX_RPC = zeros(1, nImages);
 
-for k = 1 : nImages;
-   imageNum = imageNumbers(k);
+for k = 1 : 1 : nImages;
    
+   % Image number
+   imageNum = imageNumbers(k);
+      
    % Read the raw images
    image1 = double(imageMatrix1(:, :, imageNum));
    image2 = double(imageMatrix2(:, :, imageNum));
    
-   spc(image1, image2, TY(k), TX(k), k);
+   % Calculate SPC and RPC translations
+   [TY_SPC(k), TX_SPC(k), TY_RPC(k), TX_RPC(k)] = spc_skel(image1 .* spatialWindow, image2 .* spatialWindow, rpcFilter, spcFilter);  
    
-   pause;
-    
+%    fprintf('\tTY\tTX\nTrue: %0.4f\t%0.4f\n SPC: %0.4f\t%0.4f\n RPC: %0.4f\t%0.4f\n\n', TY(k), TX(k), ty_spc, tx_spc, ty_rpc, tx_rpc);
+  
 end
+
+
+
 
 
 end

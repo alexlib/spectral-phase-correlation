@@ -1,0 +1,137 @@
+% function runFmiJobFileMc(SETTYPE, CASENAME, DIMENSIONS, STARTSET, ENDSET, NPROCESSORS)
+function runSpcJobFileMc(JOBLIST)
+
+% Add paths
+addpath(fullfile('..', 'correlation_algorithms'));
+addpath(fullfile('..', 'filtering'));
+addpath(fullfile('..', 'jobfiles'));
+
+
+% Count number of jobs
+nJobs = length(JOBLIST);
+
+for n = 1 : nJobs
+
+% Read joblist
+JobFile = JOBLIST(n);
+
+skipExistingSets = JobFile.JobOptions.SkipExistingSets;
+regionHeight = JobFile.Parameters.RegionHeight;
+regionWidth = JobFile.Parameters.RegionWidth;
+caseName = JobFile.CaseName;
+correlationType = JobFile.CorrelationType;
+imageType = JobFile.ImageType;
+setType = JobFile.SetType;
+startSet = JobFile.Parameters.Sets.Start;
+endSet = JobFile.Parameters.Sets.End;
+imagesPerSet = JobFile.Parameters.Sets.ImagesPerSet;
+
+if JobFile.JobOptions.RepositoryPathIsAbsolute
+    Repository = JobFile.Parameters.RepositoryPath;
+else
+    % Main code repository
+    Repository = fullfile(pwd, '..', '..', '..');
+end
+
+% Case directory
+caseDir = fullfile(Repository, 'analysis', 'data', imageType,setType, caseName);
+
+% Image parent directory
+imageParentDirectory = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], 'raw');
+
+% Write directory
+writeDir = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], correlationType);
+
+% Make the write directory if it doesn't exist
+if ~exist(writeDir, 'dir')
+    mkdir(writeDir)
+end
+
+% Base names of image sets
+setBase = [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
+
+% Base names of results files
+saveBase = ['errorAnalysis_' setType '_' correlationType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
+
+% Number of digits in the set names
+setDigits = 5;
+% Numbering format tag for image sets
+setFormat = ['%0' num2str(setDigits) '.0f'];
+
+% Number of digits in image names
+imageDigits = 6;
+imageNumberFormat = ['%0' num2str(imageDigits) '.0f'];
+
+% Spatial window parameters
+spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
+spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
+
+% Make the spatial window
+spatial_window = gaussianWindowFilter( [regionHeight regionWidth], spatialWindowFraction, spatialWindowType );
+
+% Spatial RPC diameter
+spatialRPCdiameter = JobFile.Parameters.Processing.SpatialRPCDiameter; % Spatial image RPC diameter (pixels)
+
+% Make the image spectral filter
+rpc_spectral_filter = spectralEnergyFilter(regionHeight, regionWidth, spatialRPCdiameter); % Raw image RPC spectral energy filter
+
+% Close any open files
+fclose all;
+
+% List of set numbers
+setList = startSet : endSet;
+nSets = length(setList);
+
+for k = 1 : nSets             
+    
+    % Print message
+    fprintf(1, ['Analyzing set ' ...
+         correlationType ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
+         ' of ' num2str(nSets) ')... ']); % Display status
+
+     % Specify directory containing images
+    image_dir = fullfile( imageParentDirectory, [ setBase num2str( setList(k), setFormat ) ], 'raw' ); % Image directory
+     
+    % Path to the raw image file
+    image_file_path = fullfile(image_dir, ['raw_image_matrix_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(imagesPerSet, imageNumberFormat) '.mat'] );
+    
+     % Path to image parameters
+    parameters_path = fullfile(imageParentDirectory,...
+            [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' num2str(setList(k), setFormat)], 'parameters', ...
+            ['imageParameters_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(imagesPerSet, imageNumberFormat) '.mat']);                         
+    
+     
+     % Specify path to saved file
+     save_path = fullfile( writeDir, [ saveBase num2str( setList(k), setFormat ) '.mat' ] ); % Save path
+ 
+        % Perform analysis on the image set if "skip existing sets" isn't
+        % selected or if the set results don't exist.
+    if (~skipExistingSets) || (skipExistingSets && ~exist(save_path, 'file'))
+
+        % Start set timer.
+        setTic = tic;    
+
+        % Perform analysis
+        spcErrorAnalysisMonteCarlo(JobFile, save_path, image_file_path, parameters_path, spatial_window, rpc_spectral_filter); 
+
+        % Display elapsed time.
+        setTime = toc(setTic);
+        fprintf(1, '%0.2f sec\n', setTime);
+
+    else
+    disp(['Skipping set ' num2str(setList(k))]); 
+    end
+
+
+end
+    
+end % End if  
+
+end
+
+
+
+
+    
+    
+

@@ -57,7 +57,6 @@ f1 = fftn(A, [m, n]);
 f2 = fftn(B, [m, n]);
 
 % Perform cross correlation in spectral domain
-% spectralCrossCorr = f1 .* conj(f2);
 spectralCrossCorr =  f2 .* conj(f1);
 
 end

@@ -17,7 +17,7 @@ vc = regionHeight/2 + 1 - 0.5 * mod(regionHeight, 2);
 
 % Wavenumber coordinates
 [u, v] = meshgrid((1 : regionWidth) - uc, (1 : regionHeight) - vc);
-u_1D = u(1, :);
+u_1D = (u(1, :))';
 
 % Phase correlation of windowed images
 phaseCorr = angle(fftshift(phaseCorrelation(gaussianWindow .* image1, gaussianWindow .* image2)));
@@ -25,7 +25,6 @@ phaseCorr = angle(fftshift(phaseCorrelation(gaussianWindow .* image1, gaussianWi
 % Theoretical phase plane
 phaseCorr_theory = angle(exp(-2 * pi * 1i * ...
     (TX_EST / regionWidth * u + TY_EST / regionHeight * v)));
-
 
 % Plot the phase correlation
 subplot(1, 2, 1);
@@ -44,22 +43,39 @@ axis image;
 hold on
 
 % Calculate the number of fringes in the theoretical plane
-nFringes = countFringes(TY_EST, TX_EST, [regionHeight, regionWidth]);
+[nFringes_left, nFringes_right] = countFringes(TY_EST, TX_EST, [regionHeight, regionWidth]);
+
+% Total number of fringes
+nFringes = nFringes_left + nFringes_right;
+
+
+
+% Calculate fringe lines if there are any
+if nFringes > 0
+
+    % Fringe coordinate vector
+    v_fringes = zeros(length(u_1D), nFringes);
+
+    % fringe vector
+    % These are the values of N in the equation
+    % for the fringe lines
+    fringeVector = -nFringes_left : nFringes_right-1;
+
+    % Calculate the coordinates of each fringe line
+    for n = 1 : nFringes
+        % Analytical equation for the n'th fringe line
+        v_fringes(:, n) = regionHeight / TY_EST * ...
+        ( -TX_EST / regionWidth * u_1D + (2 * fringeVector(n) + 1) / 2 );
+        
+        % Take this out
+        % Plot fringe lines
+        plot(u_1D, v_fringes(:, n), '--g', 'linewidth', 2);
+    end      
+end
+
 
 % Print some data to screen.
 fprintf('%d\t%0.2f\t%0.2f\t%0.2f\n',k, TY_EST, TX_EST, nFringes);
-
-if nFringes > 0
-  for n = -nFringes : nFringes     
-     % Analytical equation for the n'th fringe line
-     v_fringes = regionHeight / TY_EST * ...
-         ( -TX_EST / regionWidth * u_1D + (2 * n + 1) / 2 );
-     
-     % Plot fringe lines
-     plot(u_1D, v_fringes, '--g', 'linewidth', 2);
-  end      
-end
-
 
 
 % Plot formatting...
