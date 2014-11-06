@@ -28,7 +28,7 @@ skipExistingSets = JobFile.JobOptions.SkipExistingSets;
 regionHeight = JobFile.Parameters.RegionHeight;
 regionWidth = JobFile.Parameters.RegionWidth;
 caseName = JobFile.CaseName;
-correlationType = JobFile.CorrelationType;
+correlation_type = JobFile.CorrelationType;
 imageType = JobFile.ImageType;
 setType = JobFile.SetType;
 startSet = JobFile.Parameters.Sets.Start;
@@ -49,7 +49,7 @@ caseDir = fullfile(Repository, 'analysis', 'data', imageType,setType, caseName);
 imageParentDirectory = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], 'raw');
 
 % Write directory
-writeDir = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], correlationType);
+writeDir = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], correlation_type);
 
 % Make the write directory if it doesn't exist
 if ~exist(writeDir, 'dir')
@@ -60,7 +60,7 @@ end
 setBase = [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
 
 % Base names of results files
-saveBase = ['errorAnalysis_' setType '_' correlationType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' phase_unwrapping_algorithm '_'];
+saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' phase_unwrapping_algorithm '_'];
 
 % Number of digits in the set names
 setDigits = 5;
@@ -82,7 +82,7 @@ for k = 1 : nSets
     
     % Print message
     fprintf(1, ['Analyzing set ' ...
-         correlationType ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
+         correlation_type ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
          ' of ' num2str(nSets) ')... ']); % Display status
 
      % Specify directory containing images
@@ -109,13 +109,18 @@ for k = 1 : nSets
         MonteCarloParams.Save_Path = save_path;
         MonteCarloParams.Image_File_Path = image_file_path;
         MonteCarloParams.Image_Parameters_path = parameters_path;
-        MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
         
         % Start set timer.
-        setTic = tic;    
+        setTic = tic;
 
-        % % Perform analysis % %
-        spcErrorAnalysisMonteCarlo(MonteCarloParams);
+        switch correlation_type
+            case 'spc'
+                % % Perform analysis % %
+                MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
+                spcErrorAnalysisMonteCarlo(MonteCarloParams);
+            case 'rpc'
+                rpcErrorAnalysisMonteCarlo(MonteCarloParams);
+        end
         
         % Display elapsed time.
         setTime = toc(setTic);

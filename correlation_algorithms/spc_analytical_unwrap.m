@@ -1,4 +1,4 @@
-function [TY_SPC, TX_SPC, TY_RPC, TX_RPC] = spc_analytical_unwrap(REGION_01, REGION_02, RPC_FILTER, SPC_WEIGHTING_MATRIX);
+function [TY_SPC, TX_SPC] = spc_analytical_unwrap(REGION_01, REGION_02, RPC_FILTER, SPC_WEIGHTING_MATRIX);
 % Variable k is a counter, used temporarily for debugging.
 % To do: Get rid of RPC output
 

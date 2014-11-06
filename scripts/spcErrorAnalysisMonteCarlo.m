@@ -5,7 +5,7 @@ JobFile = MONTE_CARLO_PARAMETERS.JobFile;
 results_save_path = MONTE_CARLO_PARAMETERS.Save_Path;
 image_file_path = MONTE_CARLO_PARAMETERS.Image_File_Path;
 parameters_file_path = MONTE_CARLO_PARAMETERS.Image_Parameters_path;
-phase_unwrapping_algorithm = MONTE_CARLO_PARAMETERS.PhaseUnwrappingAlgorithm;
+phase_unwrapping_method = MONTE_CARLO_PARAMETERS.PhaseUnwrappingAlgorithm;
 
 % Spatial window parameters
 spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
@@ -30,28 +30,18 @@ spatial_window = gaussianWindowFilter( [region_height region_width], spatialWind
 spc_cutoff_amplitude = 2 / (pi * spatial_rpc_diameter);
 
 % Initialize vectors to hold translation estimates (SPC)
-TY_SPC = zeros(number_of_images, 1);
-TX_SPC = zeros(number_of_images, 1);
-
-% Initialize vectors to hold translation estimates (RPC)
-TY_RPC = zeros(number_of_images, 1);
-TX_RPC = zeros(number_of_images, 1);
+TY_EST = zeros(number_of_images, 1);
+TX_EST = zeros(number_of_images, 1);
 
 % Read the true translations, which will be saved to file.
 TY_TRUE = Parameters.TranslationY;
 TX_TRUE = Parameters.TranslationX;
 
-% Create the spectral filters
-switch phase_unwrapping_algorithm
-    case 'UNWRAP_PHASE_ANALYTICAL'
-        % Create the 2-D spectral filter (i.e. RPC filter)
-        rpc_spectral_filter = spectralEnergyFilter(region_height, region_width, spatial_rpc_diameter); % Raw image RPC spectral energy filter
 
-        % Make the 2-D SPC filter
-        spc_weighting_matrix = rpc_spectral_filter;
-        spc_weighting_matrix(spc_weighting_matrix < spc_cutoff_amplitude) = 0;
-        
-    case 'UNWRAP_PHASE_SVD_1D'
+% Create the spectral filters
+switch phase_unwrapping_method
+    
+    case 'SVD'
         
         % Create the row-wise spectral energy filter
         spectral_weights_rows = spectralEnergyFilter(region_height, 1, spatial_rpc_diameter);
@@ -62,43 +52,42 @@ switch phase_unwrapping_algorithm
         % Apply the cutoff amplitude to the filters
         spectral_weights_rows(spectral_weights_rows < spc_cutoff_amplitude) = 0;
         spectral_weights_cols(spectral_weights_cols < spc_cutoff_amplitude) = 0;
-    otherwise
-        error('Error using spcErrorAnalysisMonteCarlo.\nInvalid phase unwrapping algorithm specified: %s', phase_unwrapping_algorithm);
-end
-
-% Moving PARFOR inside case structure because
-% parfor seems to be causing trouble if case structure
-% is inside of it
-switch phase_unwrapping_algorithm
-    case 'UNWRAP_PHASE_ANALYTICAL'
         
         % Perform the correlations
         parfor k = 1 : number_of_images
             % Read the raw images
             region_01 = double(imageMatrix1(:, :, k));
             region_02 = double(imageMatrix2(:, :, k));
-            [TY_SPC(k), TX_SPC(k), TY_RPC(k), TX_RPC(k)] = spc_analytical_unwrap(spatial_window .* region_01,...
-                spatial_window .* region_02, ...
-                rpc_spectral_filter, spc_weighting_matrix);       
-        end
-        
-    case 'UNWRAP_PHASE_SVD_1D'
-        
-        % Perform the correlations
-        parfor k = 1 : number_of_images
-            % Read the raw images
-            region_01 = double(imageMatrix1(:, :, k));
-            region_02 = double(imageMatrix2(:, :, k));
-            [TY_SPC(k), TX_SPC(k)] = spc_svd_unwrap(spatial_window .* region_01,...
+            [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* region_01,...
                 spatial_window .* region_02,...
                 spectral_weights_rows, spectral_weights_cols);       
         end
-        TY_RPC = zeros(size(TY_SPC));
-        TX_RPC = zeros(size(TX_SPC));
+    
+    otherwise
+        % All the other phase unwrapping algorithms are 2D,
+        % so create the same filters for all of them.
+        
+        % Create the 2-D spectral filter (i.e. RPC filter)
+        rpc_spectral_filter = spectralEnergyFilter(region_height, region_width, spatial_rpc_diameter); % Raw image RPC spectral energy filter
+
+        % Make the 2-D SPC filter
+        spc_weighting_matrix = rpc_spectral_filter;
+        spc_weighting_matrix(spc_weighting_matrix < spc_cutoff_amplitude) = 0;
+        
+        % Do the correlations
+        % Perform the correlations
+        parfor k = 1 : number_of_images
+            
+            % Read the raw images
+            region_01 = double(imageMatrix1(:, :, k));
+            region_02 = double(imageMatrix2(:, :, k));
+            [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
+                spatial_window .* region_02, spc_weighting_matrix, phase_unwrapping_method);       
+        end    
 end
 
 % Save the output data
-save(results_save_path, 'JobFile','TY_SPC', 'TX_SPC', 'TY_RPC', 'TX_RPC', 'TY_TRUE', 'TX_TRUE');
+save(results_save_path, 'JobFile','TY_EST', 'TX_EST','TY_TRUE', 'TX_TRUE');
 
 end
 

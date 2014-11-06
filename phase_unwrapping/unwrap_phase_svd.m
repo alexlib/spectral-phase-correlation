@@ -1,5 +1,5 @@
 function [PHASE_ANGLE_UNWRAPPED_ROWS, PHASE_ANGLE_UNWRAPPED_COLS] = ...
-    unwrap_phase_svd_1D(PHASE_PLANE_WRAPPED_COMPLEX)
+    unwrap_phase_svd(PHASE_PLANE_WRAPPED_COMPLEX)
 % This function unwraps the dominant modes of the SVD of a 2D complex phase
 % plane into two 1D phase-angle vectors.
 

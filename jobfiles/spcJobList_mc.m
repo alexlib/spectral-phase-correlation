@@ -17,15 +17,15 @@ DefaultJob.Parameters.RegionHeight = 64;
 DefaultJob.Parameters.RegionWidth = 128;
 DefaultJob.Parameters.Sets.Start = 1;
 DefaultJob.Parameters.Sets.End = 1;
-DefaultJob.Parameters.Sets.ImagesPerSet = 10000;
+DefaultJob.Parameters.Sets.ImagesPerSet = 1000;
 DefaultJob.Parameters.RepositoryPath =  '/Users/matthewgiarra/Dropbox/School/VT/Research/SPC/analysis/data';
 
 DefaultJob.Parameters.Processing.SpatialWindowFraction = [0.5 0.5];
 DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
 DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
-% DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_ANALYTICAL';
-% DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_PRANA';
-DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_SVD_1D';
+DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'HERRAEZ';
+% DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
+
 
 % This is the mean of the additive gaussian white noise
 % as a fraction of the maximum image intensity
@@ -42,8 +42,17 @@ SegmentItem.CorrelationType = 'spc';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_SVD_1D';
+SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'HERRAEZ';
 JOBLIST(1) = SegmentItem;
+
+% JOB 1
+SegmentItem = DefaultJob;
+SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_0.00';
+SegmentItem.CorrelationType = 'rpc';
+SegmentItem.Parameters.RegionHeight = 64;
+SegmentItem.Parameters.RegionWidth = 64;
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
+JOBLIST(end + 1) = SegmentItem;
 
 
 end
