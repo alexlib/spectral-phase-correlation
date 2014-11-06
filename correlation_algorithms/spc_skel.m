@@ -11,19 +11,21 @@ region2 = double(REGION2);
 
 % Phase only correlaiton of images
 % Returns complex plane
-phase_plane_wrapped = fftshift(phaseOnlyFilter(fftn(double(region2), [regionHeight, regionWidth]) .* conj(fftn(double(region1), [regionHeight, regionWidth]))));
+phase_plane_wrapped_complex = fftshift(phaseOnlyFilter(fftn(double(region2), [regionHeight, regionWidth]) .* conj(fftn(double(region1), [regionHeight, regionWidth]))));
 
 % Phase angle plane (wrapped)
-phase_angle_plane = angle(phase_plane_wrapped);
+phase_angle_plane = angle(phase_plane_wrapped_complex);
 
 % Spatial RPC plane (for peak fit)
-rpc_plane_spatial = freq2space(phase_plane_wrapped .* RPC_FILTER, regionHeight, regionWidth);
+rpc_plane_spatial = freq2space(phase_plane_wrapped_complex .* RPC_FILTER, regionHeight, regionWidth);
 
 % Peak fitting of RPC plane
 [TY_RPC, TX_RPC, ~, ~, ~] = subpixel(rpc_plane_spatial, ones(size(rpc_plane_spatial)), 1, 0);
 
 % Unwrapped phase plane
 phase_plane_unwrapped = spc_unwrap_analytical(phase_angle_plane, TY_RPC, TX_RPC);
+
+
 
 % Zero frequency pixel coordinates
 uc =  regionWidth/2 + 1 - 0.5 * mod(regionWidth, 2);

@@ -1,113 +1,76 @@
-function spc(REGION1, REGION2, TY_EST, TX_EST, k)
+function [TY_SPC, TX_SPC, TY_RPC, TX_RPC] = spc(REGION1, REGION2, RPC_FILTER, SPC_FILTER, PHASE_UNWRAP_ALGORITHM);
 % Variable k is a counter, used temporarily for debugging.
+% To do: Get rid of RPC output
 
-% Calculate region height and width
+% Default to analytical unwrap
+if nargin < 5
+    PHASE_UNWRAP_ALGORITHM = 'UNWRAP_PHASE_ANALYTICAL';
+end
+
+% Dimensions of the regions
 [regionHeight, regionWidth] = size(REGION1);
 
-% Gaussian window filter
-gaussianWindow = gaussianWindowFilter([regionHeight, regionWidth], [0.5 0.5], 'fraction');
+% Cast regions as doubles.
+% Maybe make singles for speed?
+region1 = double(REGION1);
+region2 = double(REGION2);
 
-% Windowed regions
-image1 = double(REGION1);
-image2 = double(REGION2);
+% Phase only correlaiton of images
+% Returns complex plane
+phase_plane_wrapped_complex = fftshift(phaseOnlyFilter(fftn(double(region2), [regionHeight, regionWidth]) .* conj(fftn(double(region1), [regionHeight, regionWidth]))));
 
-% Zero frequency pixel coordinates
-uc =  regionWidth/2 + 1 - 0.5 * mod(regionWidth, 2);
-vc = regionHeight/2 + 1 - 0.5 * mod(regionHeight, 2);
+% Phase angle plane (wrapped)
+phase_angle_plane_wrapped = angle(phase_plane_wrapped_complex);
 
-% Wavenumber coordinates
-[u, v] = meshgrid((1 : regionWidth) - uc, (1 : regionHeight) - vc);
-u_1D = (u(1, :))';
-
-% Phase correlation of windowed images
-phaseCorr = angle(fftshift(phaseCorrelation(gaussianWindow .* image1, gaussianWindow .* image2)));
-
-% Theoretical phase plane
-phaseCorr_theory = angle(exp(-2 * pi * 1i * ...
-    (TX_EST / regionWidth * u + TY_EST / regionHeight * v)));
-
-% Plot the phase correlation
-subplot(1, 2, 1);
-imagesc(u(:), v(:), phaseCorr);
-caxis(1.1 * [-pi pi]);
-axis image;
-colormap gray;
-
-% Plot the theoretical plane
-subplot(1, 2, 2);
-imagesc(u(:), v(:), phaseCorr_theory);
-xlim([u(1) u(end)]);
-ylim([v(1) v(end)]);
-caxis(1.1 * [-pi pi]);
-axis image;
-hold on
-
-% Calculate the number of fringes in the theoretical plane
-[nFringes_left, nFringes_right] = countFringes(TY_EST, TX_EST, [regionHeight, regionWidth]);
-
-% Total number of fringes
-nFringes = nFringes_left + nFringes_right;
-
-
-
-% Calculate fringe lines if there are any
-if nFringes > 0
-
-    % Fringe coordinate vector
-    v_fringes = zeros(length(u_1D), nFringes);
-
-    % fringe vector
-    % These are the values of N in the equation
-    % for the fringe lines
-    fringeVector = -nFringes_left : nFringes_right-1;
-
-    % Calculate the coordinates of each fringe line
-    for n = 1 : nFringes
-        % Analytical equation for the n'th fringe line
-        v_fringes(:, n) = regionHeight / TY_EST * ...
-        ( -TX_EST / regionWidth * u_1D + (2 * fringeVector(n) + 1) / 2 );
+% Decide which phase unwrapping algorithm to use.
+switch PHASE_UNWRAP_ALGORITHM
+    
+    % Analytical unwrapping algorithm
+    case 'UNWRAP_PHASE_ANALYTICAL'
         
-        % Take this out
-        % Plot fringe lines
-        plot(u_1D, v_fringes(:, n), '--g', 'linewidth', 2);
-    end      
+        % Spatial RPC plane (for peak fit)
+        rpc_plane_spatial = freq2space(phase_plane_wrapped_complex .* RPC_FILTER, regionHeight, regionWidth);
+
+        % Peak fitting of RPC plane
+        [TY_RPC, TX_RPC, ~, ~, ~] = subpixel(rpc_plane_spatial, ones(size(rpc_plane_spatial)), 1, 0);
+
+        % Unwrapped phase plane.
+        phase_plane_unwrapped = spc_unwrap_analytical(phase_angle_plane_wrapped, TY_RPC, TX_RPC);
+    
+        % Prana SVD phase unwrapping algorithm
+    case 'UNWRAP_PHASE_SVD_1D'
+        
+        % Calculate the SVD modes of the complex phase plane.
+        % Returned values are complex.
+        [U, ~, V] = svd(phase_plane_wrapped_complex);
+        
+        % Calculate the (wrapped) phase angles of the dominant modes of each SVD matrix.
+        phase_angle_wrapped_V = angle(V(:, 1));
+        phase_angle_wrapped_U = angle(U(:, 1));
+        
+        % Unwrap the dominant modes
+        phase_angle_unwrapped_V = unwrap(phase_angle_wrapped_V);
+        phase_angle_unwrapped_U = unwrap(phase_angle_wrapped_U);
+        
+        
+        
+        
+      
+        
+        % Set RPC outputs to zero to prevent crash
+        % To do: Remove the RPC translation estimates from the
+        % outputs of this function
+        TX_RPC = 0;
+        TY_RPC = 0;
+
 end
 
+% Perform the 2D weighted least squares fit to the unwrapped phase plane.
+p = polyfitweighted2(1 : regionWidth, 1 : regionHeight, phase_plane_unwrapped', 1, SPC_FILTER');
 
-% Print some data to screen.
-fprintf('%d\t%0.2f\t%0.2f\t%0.2f\n',k, TY_EST, TX_EST, nFringes);
-
-
-% Plot formatting...
-grid on;
-
-% Fringe angle
-th = atan2(TY_EST, TX_EST);
-
-% Absolute normalized components of the vector
-abs_cos_angle = abs(cos(th));
-abs_sin_angle = abs(sin(th));
-
-% Calculate the vector magnitude (pixel units)
-if (regionWidth / 2 * abs_sin_angle)  <= (regionHeight / 2 * abs_cos_angle) 
-   vectorMagnitude_right = (regionWidth - uc)  / abs_cos_angle;
-   vectorMagnitude_left = (uc - 1) / abs_cos_angle;
-else
-   vectorMagnitude_right = (regionHeight - vc) / abs_sin_angle;
-   vectorMagnitude_left = (vc - 1) / abs_sin_angle;
-end
-
-
-
-% Plot a vector extending from the zero-frequency
-% pixel, pointing in the directon perpendicular to the fringe lines
-plot([0, vectorMagnitude_right * cos(th)], [0, vectorMagnitude_right * sin(th)], '-r', 'linewidth', 2);
-plot([0, -vectorMagnitude_left * cos(th)], [0, -vectorMagnitude_left * sin(th)], '-b', 'linewidth', 2);
-plot(0, 0, 'ok', 'markersize', 10, 'markerfacecolor', 'green');
-hold off
-
-xlim(([1 regionWidth] - uc) * 1.1);
-ylim(([1 regionHeight] - vc) * 1.1);
+% SPC estimates of translations
+TY_SPC = -p(2) * regionHeight / (2 * pi);
+TX_SPC = -p(3) * regionWidth  / (2 * pi);
 
 end
 

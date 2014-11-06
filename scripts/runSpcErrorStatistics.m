@@ -4,6 +4,7 @@ function runSpcErrorStatistics(JOBLIST)
 addpath(fullfile('..', 'correlation_algorithms'));
 addpath(fullfile('..', 'filtering'));
 addpath(fullfile('..', 'jobfiles'));
+addpath(fullfile(',,', 'phase_unwrapping'));
 
 % Font size
 fSize = 16;
@@ -25,6 +26,7 @@ for n = 1 : nJobs
     startSet = JobFile.Parameters.Sets.Start;
     endSet = JobFile.Parameters.Sets.End;
     imagesPerSet = JobFile.Parameters.Sets.ImagesPerSet;
+    phase_unwrapping_algorithm = JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm;
 
     if JobFile.JobOptions.RepositoryPathIsAbsolute
         Repository = JobFile.Parameters.RepositoryPath;
@@ -43,7 +45,7 @@ for n = 1 : nJobs
     dataDir = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], correlationType);
 
     % Base names of results files
-    dataBase = ['errorAnalysis_' setType '_' correlationType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
+    dataBase = ['errorAnalysis_' setType '_' correlationType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' phase_unwrapping_algorithm '_'];
 
     % Number of digits in the set names
     setDigits = 5;
@@ -84,7 +86,7 @@ for n = 1 : nJobs
         
         % Specify path to saved file
         data_path = fullfile( dataDir, [ dataBase num2str( setList(k), setFormat ) '.mat' ] ); % Save path
-
+        
         % Load the results file
         load(data_path);
         
@@ -147,7 +149,11 @@ for n = 1 : nJobs
     set(gca, 'FontSize', fSize);
     
     % Save the figure
-    print(1, '-depsc', fullfile('~/Desktop', [caseName '_' num2str(n, '%03.0f')]));
+    print(1, '-depsc', fullfile('~/Desktop', [dataBase '_' num2str(n, '%03.0f')]));
+    
+    % Save data
+    save(fullfile('~/Desktop', [dataBase '_' num2str(n, '%03.0f') '.mat']), 'translation_error_magnitude_spc', 'translation_error_magnitude_rpc');
+    
     
 end   
 

@@ -16,7 +16,7 @@ function spectralPhaseCorr = phaseCorrelation(A, B)
 % Perform standard cross correlation
 % Leave this as a separate function in case we 
 % want to modify the correlation kernel, FFT algorithm, etc.
-spectralCrossCorr = crossCorrelation(A, B);
+spectralCrossCorr = crossCorrelation(double(A), double(B));
 
 % Magnitude of cross correlation in frequency domain
 mag = sqrt(spectralCrossCorr .* conj(spectralCrossCorr));

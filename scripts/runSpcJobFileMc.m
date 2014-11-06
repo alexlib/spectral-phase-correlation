@@ -5,6 +5,7 @@ function runSpcJobFileMc(JOBLIST)
 addpath(fullfile('..', 'correlation_algorithms'));
 addpath(fullfile('..', 'filtering'));
 addpath(fullfile('..', 'jobfiles'));
+addpath(fullfile('..', 'phase_unwrapping'));
 
 
 % Count number of jobs
@@ -15,6 +16,8 @@ for n = 1 : nJobs
 % Read joblist
 JobFile = JOBLIST(n);
 
+% Read processing parameters
+phase_unwrapping_algorithm = JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm;
 skipExistingSets = JobFile.JobOptions.SkipExistingSets;
 regionHeight = JobFile.Parameters.RegionHeight;
 regionWidth = JobFile.Parameters.RegionWidth;
@@ -24,7 +27,7 @@ imageType = JobFile.ImageType;
 setType = JobFile.SetType;
 startSet = JobFile.Parameters.Sets.Start;
 endSet = JobFile.Parameters.Sets.End;
-imagesPerSet = JobFile.Parameters.Sets.ImagesPerSet;
+images_per_set = JobFile.Parameters.Sets.ImagesPerSet;
 
 if JobFile.JobOptions.RepositoryPathIsAbsolute
     Repository = JobFile.Parameters.RepositoryPath;
@@ -51,7 +54,7 @@ end
 setBase = [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
 
 % Base names of results files
-saveBase = ['errorAnalysis_' setType '_' correlationType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
+saveBase = ['errorAnalysis_' setType '_' correlationType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' phase_unwrapping_algorithm '_'];
 
 % Number of digits in the set names
 setDigits = 5;
@@ -61,19 +64,6 @@ setFormat = ['%0' num2str(setDigits) '.0f'];
 % Number of digits in image names
 imageDigits = 6;
 imageNumberFormat = ['%0' num2str(imageDigits) '.0f'];
-
-% Spatial window parameters
-spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
-spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
-
-% Make the spatial window
-spatial_window = gaussianWindowFilter( [regionHeight regionWidth], spatialWindowFraction, spatialWindowType );
-
-% Spatial RPC diameter
-spatialRPCdiameter = JobFile.Parameters.Processing.SpatialRPCDiameter; % Spatial image RPC diameter (pixels)
-
-% Make the image spectral filter
-rpc_spectral_filter = spectralEnergyFilter(regionHeight, regionWidth, spatialRPCdiameter); % Raw image RPC spectral energy filter
 
 % Close any open files
 fclose all;
@@ -93,12 +83,12 @@ for k = 1 : nSets
     image_dir = fullfile( imageParentDirectory, [ setBase num2str( setList(k), setFormat ) ], 'raw' ); % Image directory
      
     % Path to the raw image file
-    image_file_path = fullfile(image_dir, ['raw_image_matrix_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(imagesPerSet, imageNumberFormat) '.mat'] );
+    image_file_path = fullfile(image_dir, ['raw_image_matrix_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat'] );
     
      % Path to image parameters
     parameters_path = fullfile(imageParentDirectory,...
             [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' num2str(setList(k), setFormat)], 'parameters', ...
-            ['imageParameters_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(imagesPerSet, imageNumberFormat) '.mat']);                         
+            ['imageParameters_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat']);                         
     
      
      % Specify path to saved file
@@ -108,21 +98,26 @@ for k = 1 : nSets
         % selected or if the set results don't exist.
     if (~skipExistingSets) || (skipExistingSets && ~exist(save_path, 'file'))
 
+        % Read case parameters
+        MonteCarloParams.JobFile = JobFile;
+        MonteCarloParams.Save_Path = save_path;
+        MonteCarloParams.Image_File_Path = image_file_path;
+        MonteCarloParams.Image_Parameters_path = parameters_path;
+        MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
+        
         % Start set timer.
         setTic = tic;    
 
-        % Perform analysis
-        spcErrorAnalysisMonteCarlo(JobFile, save_path, image_file_path, parameters_path, spatial_window, rpc_spectral_filter); 
-
+        % % Perform analysis % %
+        spcErrorAnalysisMonteCarlo(MonteCarloParams);
+        
         % Display elapsed time.
         setTime = toc(setTic);
-        fprintf(1, '%0.2f sec\n', setTime);
-
+        fprintf(1, 'Analyzed %d images in %0.2f sec\n', images_per_set, setTime);
     else
-    disp(['Skipping set ' num2str(setList(k))]); 
+        % Inform user that the k'th set is being skipped.
+        disp(['Skipping set ' num2str(setList(k))]); 
     end
-
-
 end
     
 end % End if  
