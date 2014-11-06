@@ -39,7 +39,7 @@ if JobFile.JobOptions.RepositoryPathIsAbsolute
     Repository = JobFile.Parameters.RepositoryPath;
 else
     % Main code repository
-    Repository = fullfile(pwd, '..', '..', '..');
+    Repository = fullfile(pwd, '..', '..', '..', '..');
 end
 
 % Case directory

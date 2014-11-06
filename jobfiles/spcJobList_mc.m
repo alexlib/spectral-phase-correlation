@@ -37,44 +37,13 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 
 % JOB 1
 SegmentItem = DefaultJob;
-SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_01';
+SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_0.00';
 SegmentItem.CorrelationType = 'spc';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
 SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_SVD_1D';
 JOBLIST(1) = SegmentItem;
-
-SegmentItem = DefaultJob;
-SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_01';
-SegmentItem.CorrelationType = 'spc';
-SegmentItem.Parameters.RegionHeight = 64;
-SegmentItem.Parameters.RegionWidth = 64;
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_ANALYTICAL';
-JOBLIST(end + 1) = SegmentItem;
-
-
-% Job 2
-SegmentItem = DefaultJob;
-SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_02';
-SegmentItem.CorrelationType = 'spc';
-SegmentItem.Parameters.RegionHeight = 64;
-SegmentItem.Parameters.RegionWidth = 64;
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_SVD_1D';
-JOBLIST(end + 1) = SegmentItem;
-
-% Job 2
-SegmentItem = DefaultJob;
-SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_02';
-SegmentItem.CorrelationType = 'spc';
-SegmentItem.Parameters.RegionHeight = 64;
-SegmentItem.Parameters.RegionWidth = 64;
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'UNWRAP_PHASE_ANALYTICAL';
-JOBLIST(end + 1) = SegmentItem;
-
 
 
 end
