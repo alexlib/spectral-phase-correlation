@@ -8,17 +8,9 @@ function [TY_SPC, TX_SPC] = spc_svd_unwrap(REGION_01, REGION_02, SPC_WEIGHTS_ROW
 % Returns complex plane
 phase_plane_wrapped_complex = fftshift(phaseCorrelation(REGION_01, REGION_02));
 
-% Calculate the SVD modes of the complex phase plane.
-% Returned values are complex.
-[svd_rows, ~, svd_cols] = svd(phase_plane_wrapped_complex);
-
-% Calculate the (wrapped) phase angles of the dominant modes of each SVD matrix.
-phase_angle_wrapped_cols = angle(svd_cols(:, 1));
-phase_angle_wrapped_rows = angle(svd_rows(:, 1));
-
 % Unwrap the dominant modes
-phase_angle_unwrapped_cols = unwrap(phase_angle_wrapped_cols);
-phase_angle_unwrapped_rows = unwrap(phase_angle_wrapped_rows);
+[phase_angle_unwrapped_cols, phase_angle_unwrapped_rows] ...
+    = unwrap_phase_svd_1D(phase_plane_wrapped_complex);
 
 % Degree of the polynomial fit.
 % This should always be 1 in this function. 

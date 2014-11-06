@@ -7,6 +7,12 @@ addpath(fullfile('..', 'filtering'));
 addpath(fullfile('..', 'jobfiles'));
 addpath(fullfile('..', 'phase_unwrapping'));
 
+% Add external libraries:
+% 2D weighted least squares
+addpath(fullfile('..', 'correlation_algorithms', 'polyfitweighted2'));
+
+% 1D weighted least squares
+addpath(fullfile('..', 'correlation_algorithms', 'polyfit3'));
 
 % Count number of jobs
 nJobs = length(JOBLIST);
