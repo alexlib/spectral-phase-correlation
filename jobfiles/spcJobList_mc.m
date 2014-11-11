@@ -26,7 +26,6 @@ DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
 DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'HERRAEZ';
 % DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 
-
 % This is the mean of the additive gaussian white noise
 % as a fraction of the maximum image intensity
 DefaultJob.Parameters.Processing.Noise.Mean = 0.00;
