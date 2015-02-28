@@ -18,6 +18,9 @@ g = gaussianWindowFilter([height, width], [0.5, 0.5], 'fraction');
 image_01 = g.* double(imageMatrix1(:, :, 1));
 image_02 = g.* double(imageMatrix2(:, :, 1));
 
+% Phase correlation
+IM = phaseCorrelation(image_01, image_02);
+
 % Calculate the wrapped phase angle plane
 wrapped_phase_plane = fftshift(angle(phaseCorrelation(image_01, image_02)));
 

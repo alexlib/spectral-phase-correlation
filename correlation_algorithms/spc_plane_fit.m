@@ -1,5 +1,9 @@
 function [TY, TX] = spc_plane_fit(PHASE_PLANE_UNWRAPPED, WEIGHTING_MATRIX)
 
+% Zero the filter in regions where the unwrapped phase plane
+% was returned as identically zero.
+WEIGHTING_MATRIX(PHASE_PLANE_UNWRAPPED == 0) = 0;
+
 % Dimensions of the regions
 [region_height, region_width] = size(PHASE_PLANE_UNWRAPPED);
 
