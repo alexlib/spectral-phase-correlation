@@ -6,19 +6,20 @@ DefaultJob.JobOptions.BooleanGenerateParticleImages = false;
 DefaultJob.JobOptions.BooleanRunAnalysis = true;
 DefaultJob.JobOptions.FlipYTranslation = false;
 DefaultJob.JobOptions.SkipExistingSets = false;
-DefaultJob.JobOptions.RepositoryPathIsAbsolute = 0;
+DefaultJob.JobOptions.RepositoryPathIsAbsolute = 1;
 DefaultJob.JobOptions.DoAffineTransform = 0;
+DefaultJob.JobOptions.RunCompiled = 0;
 
 DefaultJob.ImageType = 'synthetic';
 DefaultJob.SetType = 'mc';
-DefaultJob.CaseName = 'SPCtest_2014-11-04_translation_x_only_uneven_windows';
+DefaultJob.CaseName = 'SPCtest_2014-11-04_translation_x';
 DefaultJob.CorrelationType = 'spc';
 DefaultJob.Parameters.RegionHeight = 64;
-DefaultJob.Parameters.RegionWidth = 128;
+DefaultJob.Parameters.RegionWidth = 64;
 DefaultJob.Parameters.Sets.Start = 1;
 DefaultJob.Parameters.Sets.End = 1;
 DefaultJob.Parameters.Sets.ImagesPerSet = 1000;
-DefaultJob.Parameters.RepositoryPath =  '/Users/matthewgiarra/Dropbox/School/VT/Research/SPC/analysis/data';
+DefaultJob.Parameters.RepositoryPath =  '/Users/matthewgiarra/Dropbox/School/VT/Research/SPC';
 
 DefaultJob.Parameters.Processing.SpatialWindowFraction = [0.5 0.5];
 DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
@@ -36,22 +37,14 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 
 % JOB 1
 SegmentItem = DefaultJob;
-SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_0.00';
+SegmentItem.CaseName = '2015-02-27_translation_only';
 SegmentItem.CorrelationType = 'spc';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'HERRAEZ';
+SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
 JOBLIST(1) = SegmentItem;
 
-% JOB 1
-SegmentItem = DefaultJob;
-SegmentItem.CaseName = 'SPCtest_2014-11-05_translation_shearing_0.00';
-SegmentItem.CorrelationType = 'rpc';
-SegmentItem.Parameters.RegionHeight = 64;
-SegmentItem.Parameters.RegionWidth = 64;
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-JOBLIST(end + 1) = SegmentItem;
 
 
 end

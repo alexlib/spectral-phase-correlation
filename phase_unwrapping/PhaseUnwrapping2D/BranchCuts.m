@@ -50,6 +50,10 @@ for i=1:temp(1);                                    %Loop through the residues
     if residue_balanced(r_active, c_active)~=1                        %Has this residue already been balanced?
         while (charge_counter~=0)                                     %Loop until balanced
             
+            % This code is getting stuck with -1 net charge.
+            % Is it correctly placing branch cuts from 
+            % residues to the image border?
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %This portion of code serves to search the box perimeter,
             %place branch cuts, and keep track of the summed residue charge

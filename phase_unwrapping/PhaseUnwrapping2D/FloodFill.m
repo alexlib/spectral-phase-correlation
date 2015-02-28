@@ -10,13 +10,33 @@ function [IM_unwrapped, rowref, colref] = FloodFill(IM_phase, branch_cuts)
 % figure; imagesc(immultiply(IM_phase, ~branch_cuts)), colormap(gray), axis square, axis off, title('Phase image');
 % uiwait(msgbox('Select a known true phase reference point','Phase reference point','modal'));
 % [xref,yref] = ginput(1); 
-yref = round(r_dim/2);
-xref = round(c_dim/2);
-colref=round(xref); rowref=round(yref);
 
-if (branch_cuts(rowref,colref)==1)
-    error('Selected point corresponds to a branch cut.');
-end
+% Determine the positions of the non-branch cut pixels
+non_branch_cuts = find(branch_cuts < 1);
+
+% Determine the row and column indices of these pixels
+[y_ind, x_ind] = ind2sub([r_dim, c_dim], non_branch_cuts);
+
+% Determine the center of the array
+xc = c_dim/2;
+yc = r_dim/2;
+
+% Determine radial position of those points
+r = sqrt((x_ind - xc).^2 + (y_ind - yc).^2);
+
+% This picks the unwrapping starting position
+% At the non-branch cut pixel closest to the 
+% center of the spectrum.
+rowref = y_ind(r == min(r));
+colref = x_ind(r == min(r));
+
+% Flag specifying that the starting point corresponds
+% to a branch cut
+% branch_cut_start = branch_cuts(rowref, colref);
+
+% if logical(branch_cut_start)
+%     error('Selected point corresponds to a branch cut.');
+% end
 
 IM_unwrapped=zeros(r_dim,c_dim);
 unwrapped_binary=zeros(r_dim,c_dim);
@@ -180,8 +200,6 @@ for i=1:temp(1)
             adjoin(r_active, c_active)=0;                                                   %Remove it from the list of adjoining pixels
         end
 end
-%figure; imagesc(adjoin), colormap(gray), axis square, axis off, title('Branch cut adjoining pixels');
-%figure; imagesc(IM_unwrapped), colormap(gray), axis square, axis off, title('Peripheral branch cut pixels unwrapped');
 
 end
 

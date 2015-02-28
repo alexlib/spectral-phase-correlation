@@ -7,6 +7,9 @@ image_file_path = MONTE_CARLO_PARAMETERS.Image_File_Path;
 parameters_file_path = MONTE_CARLO_PARAMETERS.Image_Parameters_path;
 phase_unwrapping_method = MONTE_CARLO_PARAMETERS.PhaseUnwrappingAlgorithm;
 
+% Job Options
+run_compiled = JobFile.JobOptions.RunCompiled;
+
 % Spatial window parameters
 spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
 spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
@@ -76,13 +79,16 @@ switch phase_unwrapping_method
         
         % Do the correlations
         % Perform the correlations
-        parfor k = 1 : number_of_images
+        for k = 77 : 77
+            
+            fprintf('%d of %d\n', k, number_of_images);
             
             % Read the raw images
             region_01 = double(imageMatrix1(:, :, k));
             region_02 = double(imageMatrix2(:, :, k));
             [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
-                spatial_window .* region_02, spc_weighting_matrix, phase_unwrapping_method);       
+                spatial_window .* region_02, spc_weighting_matrix, ...
+                phase_unwrapping_method, run_compiled);       
         end    
 end
 
