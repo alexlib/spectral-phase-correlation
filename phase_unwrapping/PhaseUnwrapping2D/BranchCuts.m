@@ -54,6 +54,7 @@ for i=1:temp(1);                                    %Loop through the residues
             % Is it correctly placing branch cuts from 
             % residues to the image border?
             
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %This portion of code serves to search the box perimeter,
             %place branch cuts, and keep track of the summed residue charge
