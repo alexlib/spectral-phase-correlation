@@ -5,6 +5,7 @@ addpath(fullfile('..', 'correlation_algorithms'));
 addpath(fullfile('..', 'filtering'));
 addpath(fullfile('..', 'jobfiles'));
 addpath(fullfile('..', 'phase_unwrapping'));
+addpath(fullfile('..', 'phase_unwrapping', 'PhaseUnwrapping2D'));
 
 % Add external libraries:
 % 2D weighted least squares

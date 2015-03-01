@@ -57,7 +57,11 @@ switch phase_unwrapping_method
         spectral_weights_cols(spectral_weights_cols < spc_cutoff_amplitude) = 0;
         
         % Perform the correlations
-        parfor k = 1 : number_of_images
+        for k = 1 : number_of_images
+            
+            % Print the iteration number
+            fprintf('On region %d of %d\n', k, number_of_images);
+            
             % Read the raw images
             region_01 = double(imageMatrix1(:, :, k));
             region_02 = double(imageMatrix2(:, :, k));
@@ -79,7 +83,7 @@ switch phase_unwrapping_method
         
         % Do the correlations
         % Perform the correlations
-        for k = 77 : 77
+        for k = 1 : number_of_images;
             
             fprintf('%d of %d\n', k, number_of_images);
             
