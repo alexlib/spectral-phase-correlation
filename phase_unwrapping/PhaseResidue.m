@@ -30,6 +30,13 @@ classdef PhaseResidue
     
     % This section defines the methods for PhaseResidue.
     methods
+        
+        % This method initializes a PhaseResidue object, i.e., 
+        % sets all its fields to false. The point of doing this
+        % was to try to avoid re-creating arrays of 
+        % these objects, and just create an array once
+        % and re-initialize it each time it's re-used.
+        % However this turned out to be just about as slow.
         function obj = init(obj)
             obj.positive_residue = false;
             obj.negative_residue = false;

@@ -12,6 +12,7 @@ classdef PhaseResidueArray
     
    % This is the methods for creating an array of PhaseResidue objects.
    methods
+       
        % This function creates an array of phase residue objects
        % whose dimensions are the same size as the input array F.
        function obj = PhaseResidueArray(SIZE_TEMPLATE_ARRAY)
@@ -45,6 +46,20 @@ classdef PhaseResidueArray
            end % End "if nargin ~= 0"
            
        end % End function definition
+       
+       % This function initializes all the flags in each element
+       % of an array of PhaseResidue objects.
+       function obj = init(obj)
+           
+           % Determine the number of elements in the array
+           num_elements = length(obj(:));
+           
+           % Loop over the elements in the array, initializing each one.
+           for k = 1 : num_elements
+               obj(k).Flags.init;
+           end
+       
+       end % End of function "init"
        
    end % End methods section
    
