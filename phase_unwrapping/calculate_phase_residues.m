@@ -39,6 +39,10 @@ for r = 1 : height - 1
     end
 end
 
+% Truncate residue values to those whose magnitudes
+% are greater than pi, to deal with machine precision errors.
+PHASE_RESIDUE_MATRIX(abs(PHASE_RESIDUE_MATRIX) < pi) = 0;
+
 end
 
 
