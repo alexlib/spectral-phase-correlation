@@ -27,6 +27,19 @@ classdef PhaseResidue
         % True if the pixel has been unwrapped, false if not.
         unwrapped_pixel = false;
     end
+    
+    % This section defines the methods for PhaseResidue.
+    methods
+        function obj = init(obj)
+            obj.positive_residue = false;
+            obj.negative_residue = false;
+            obj.branch_cut = false;
+            obj.image_border = false;
+            obj.balanced_residue = false;
+            obj.active_residue = false;
+            obj.unwrapped_pixel = false;
+        end
+    end
 end
 
 

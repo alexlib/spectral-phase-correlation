@@ -1,4 +1,7 @@
 classdef PhaseResidueArray
+   % This class file defines an array of phase residue objects.
+   % Unfortunately it's extremely slow. Perhaps compiling it would speed
+   % things up.
    
    % Each element of the PhaseResidueArray contains a single field
    % called "Flags," which contains the array of flags defined by 
@@ -37,7 +40,8 @@ classdef PhaseResidueArray
                            obj(r, c, d).Flags = PhaseResidue;
                        end % End looping over rows
                    end % End looping over columns
-               end % End looping over depth               
+               end % End looping over depth    
+               
            end % End "if nargin ~= 0"
            
        end % End function definition

@@ -21,7 +21,10 @@ function flags_matrix = calculate_branch_cuts(RESIDUE_MATRIX, MAX_BOX_SIZE);
 %
 % This should really be done in the object-oriented sense
 % where all these flags are attributes of a residue object.
-% But I'm not sure how to do this in matlab, or if it would be efficient
+% But when I tested this, creating arrays of phase objects
+% was extremely slow. Perhaps only the creation is slow but
+% after that the array could be passed around efficiently?
+% It's only needs to be created once.
 flags_matrix = PhaseResidueArray(zeros([height, width]));
 
 % Determine the locations of the residues.
