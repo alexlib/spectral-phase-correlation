@@ -1,6 +1,7 @@
 % Add paths
 addpath ../filtering;
 addpath ../correlation_algorithms;
+addpath ../phase_unwrapping;
 
 % Path to data file
 file_path = '~/Desktop/data.mat';
