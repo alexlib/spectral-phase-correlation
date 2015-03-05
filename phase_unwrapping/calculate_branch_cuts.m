@@ -63,6 +63,11 @@ num_residues = length(residue_locs);
 % Loop over the residue locations.
 for k = 1 : num_residues
     
+    % This initializes the size of the residue search box.
+    % The box size will be increased by 2 (i.e. to the next odd integer)
+    % until the net charge in the box is zero.
+    box_size = 3;
+    
     % Residue location
     loc = residue_locs(k);
     
@@ -117,14 +122,11 @@ for k = 1 : num_residues
 
         end
 
-        % This initializes the size of the residue search box.
-        % The box size will be increased by 2 (i.e. to the next odd integer)
-        % until the net charge in the box is zero.
-        box_size = 3;
+
 
         % Iterate the box-search algorithm until the net charge is zero.
         while abs(net_charge) > 0
-
+            
             % Radius of the box.
             box_radius = (box_size - 1) / 2;
 
@@ -200,17 +202,35 @@ for k = 1 : num_residues
                 flags_matrix(loc) = bitset(flags_matrix(loc),...
                     balanced_charge_bit_position, 1);
 
-            else
+            end
+            
+            if abs(net_charge) > 0
 
                 % If no border pixels were detected, then the box region
                 % is searched for other residues.
                 for m = r - box_radius : r + box_radius
                     for n = c - box_radius : c + box_radius
+                        
+                        
+                        
+                        imagesc(RESIDUE_MATRIX);
+                        axis image;
+                        hold on
+                        plot(c, r, 'ok', 'markerfacecolor', 'red', 'markerSize', 8);
+                        plot(c + box_radius * [-1, -1, 1, 1, -1], r + box_radius * [1, -1, -1, 1, 1], '-w');
+                        plot(n, m, 'ok', 'markerfacecolor', 'white', 'MarkerSize', 8);
+                        hold off
+                        fprintf('k = %d\n', k);
+                        pause(0.1);
+%                         fprintf('Net charge: %d\n', net_charge);
+%                         keyboard;
+                        
 
                         % Only consider the pixel if it was flagged as a residue.
                         if (abs(RESIDUE_MATRIX(m, n)) > 0) ...
                                 && (~bitget(flags_matrix(m, n), active_residue_bit_position)) ...
-                                && (~bitget(flags_matrix(r, c), balanced_charge_bit_position))
+                                && (~bitget(flags_matrix(r, c), balanced_charge_bit_position)) ...
+                                &&  abs(net_charge) > 0
 
                             % Mark the pixel as active.
                             bitset(flags_matrix(r, c), active_residue_bit_position, 1);
@@ -242,19 +262,24 @@ for k = 1 : num_residues
                                     bitset(flags_matrix(r, c), balanced_charge_bit_position, 1); 
                                 end
 
-                                
                             end
 
-                        end
-                    end
-                end        
+                        end % End if abs(RESIDUE_MATRIX(m, n)) > 0
+                    end % End loop over box cols
+                end % End loop over box rows   
             end
 
             % Grow the box by +2 pixels in each direction
             box_size = box_size + 2;
-
         end
     end
+    
+%     imagesc(branch_cut_matrix); axis image;
+%     hold on
+%     plot(c, r, 'or', 'markerfacecolor', 'red');
+%     hold off
+%     title(['Box Size: ' num2str(box_size)], 'FontSize', 20);
+%     pause(0.1);
 end
 
 
