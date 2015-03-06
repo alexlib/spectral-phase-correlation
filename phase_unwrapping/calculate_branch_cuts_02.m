@@ -87,6 +87,13 @@ for k = 1 : num_residues
         
         % Loop over each box size.
         for box_size =  initial_box_size : 2 : MAX_BOX_SIZE
+           
+            % Set the coordinates of the anchor pixel for the box search.
+            % This starts out at the same position as the residue pixel,
+            % but can change to the positions of other residues found within
+            % the search box.
+            row_anchor = r;
+            col_anchor = c;
             
             % Loop over active pixels.
             % This loop needs to be filled in
@@ -96,12 +103,21 @@ for k = 1 : num_residues
             % end
             
             % Determine the extents of the search box.
-            [box_rows_01, box_cols_01] = find_box_coordinates([r, c],...
+            [box_rows_01, box_cols_01] = find_box_coordinates([r, c], ...
                 [height, width], box_size);
             
+            % Count the number of residues in the box
+            num_residues_in_box = count_residues( ...
+            flags_matrix(box_rows_01(1) : box_rows_01(end), ...
+                         box_cols_01(1) : box_cols_01(end)));
+            
+            % This if-statement sets the coordinates of the pixels
+            % that will actually be searched for residues to not
+            % include pixels that have already been searched within 
+            % the same box.
             if box_size > initial_box_size
                 % Determine the extents of the search box one size smaller
-                [box_rows_02, box_cols_02] = find_box_coordinates([r, c],...
+                [box_rows_02, box_cols_02] = find_box_coordinates([r, c], ...
                 [height, width], box_size - 2);
             
                 % Set the search box to only search those pixels
@@ -120,7 +136,6 @@ for k = 1 : num_residues
                 % then search all the box pixels. 
                 box_rows = box_rows_01;
                 box_cols = box_cols_01;
-                
             end
 
             % Determine the number of box pixels.
@@ -398,6 +413,33 @@ for k = 1 : length(RESIDUE_MATRIX(:))
     end 
 end
 
+
+end
+
+
+function [NUM_RESIDUES, NET_CHARGE] = count_residues(FLAGS_MATRIX)
+% This function counts the total number of residues contained
+% in a matrix of residue flags, and also returns the net charge in the
+% region.
+
+% Positive residue bit position
+positive_residue_bit_position = 1;
+negative_residue_bit_position = 2;
+
+% Number of positive residues
+num_positive_residues = sum(bitget(FLAGS_MATRIX(:), ...
+    positive_residue_bit_position));
+
+% Number of negative residues
+num_negative_residues = sum(bitget(FLAGS_MATRIX(:), ...
+    negative_residue_bit_position));
+
+% Count the number of residues
+NUM_RESIDUES = num_positive_residues + num_negative_residues;
+
+% Calculate the net charge as the difference between
+% the numbers of positive and negative residues.
+NET_CHARGE = num_positive_residues - num_negative_residues;
 
 end
 
