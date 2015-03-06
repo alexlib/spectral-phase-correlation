@@ -57,8 +57,6 @@ initial_box_size = 3;
 % It's only needs to be created once.
 flags_matrix = make_flags_matrix(RESIDUE_MATRIX);
 
-% Create 
-
 % Determine the locations of the residues
 residue_locs = find(abs(RESIDUE_MATRIX) > 0);
 
@@ -91,15 +89,40 @@ for k = 1 : num_residues
         for box_size =  initial_box_size : 2 : MAX_BOX_SIZE
             
             % Loop over active pixels.
+            % This loop needs to be filled in
             % for n = 1 : num_active_pixels
             %
             %
             % end
             
             % Determine the extents of the search box.
-            [box_rows, box_cols] = find_box_coordinates([r, c],...
+            [box_rows_01, box_cols_01] = find_box_coordinates([r, c],...
                 [height, width], box_size);
             
+            if box_size > initial_box_size
+                % Determine the extents of the search box one size smaller
+                [box_rows_02, box_cols_02] = find_box_coordinates([r, c],...
+                [height, width], box_size - 2);
+            
+                % Set the search box to only search those pixels
+                % that have not already been searched, i.e., 
+                % don't include the box pixels from the box one size smaller
+                box_coords = setdiff([box_rows_01, box_cols_01],...
+                    [box_rows_02, box_cols_02], 'rows');
+            
+                % Extract the box rows and columns
+                % from the box coordinates array.
+                box_rows = box_coords(:, 1);
+                box_cols = box_coords(:, 2);                
+            else
+                
+                % If the box size is the initial box size,
+                % then search all the box pixels. 
+                box_rows = box_rows_01;
+                box_cols = box_cols_01;
+                
+            end
+
             % Determine the number of box pixels.
             num_box_pixels = length(box_rows);
             
@@ -115,7 +138,7 @@ for k = 1 : num_residues
                     % Set the residue to balanced
                     % if the box contains a border pixel.
                     flags_matrix(r, c) = bitset(flags_matrix(r, c), ...
-                        balanced_residue_bit_position, 1);
+                        balanced_charge_bit_position, 1);
                     
                     % Set the net charge in the box to zero
                     % if the box contains a border pixel.
@@ -126,11 +149,11 @@ for k = 1 : num_residues
                     branch_cut_matrix = ...
                         place_branch_cut(branch_cut_matrix, ...
                         [box_rows(p), box_cols(p)], [r, c]); 
-                    
+                                        
                 % Check if the box pixel is both a residue and not already active   
                 elseif (bitget(flag_vals, positive_residue_bit_position) ...
-                        || bitget(flag_vals, negative_residue_bit_position)) ...
-                        && ~bitget(flag_vals, active_residue_bit_position);
+                        || bitget(flag_vals, negative_residue_bit_position));
+%                         && ~bitget(flag_vals, active_residue_bit_position);
                     
                     % Check if the pixel is balanced.
                     isBalanced = ...
@@ -194,9 +217,9 @@ for k = 1 : num_residues
                 
                 % Inform the user of the net charge.
                 fprintf('Net charge = %d\n', net_charge);
-                
+            
                 % Pause
-                pause(0.01);
+                drawnow;
                 
                 %%%%%%%%%%%%%
                 
@@ -206,9 +229,15 @@ for k = 1 : num_residues
                     break;
                 end
                 
-              
             end % End looping over box pixels.
+            
+            % Break the loop if the net charge is zero.
+            if net_charge == 0
+                break
+            end
+                        
         end % End looping over box size.
+        
     end 
 end
 
