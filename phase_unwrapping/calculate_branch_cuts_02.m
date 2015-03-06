@@ -1,4 +1,4 @@
-function flags_matrix = calculate_branch_cuts_02(RESIDUE_MATRIX, MAX_BOX_SIZE);
+function [branch_cut_matrix, flags_matrix] = calculate_branch_cuts_02(RESIDUE_MATRIX, MAX_BOX_SIZE);
 
 % Determine matrix height and width
 [height, width] = size(RESIDUE_MATRIX);
@@ -69,9 +69,7 @@ num_residues = length(residue_locs);
 
 % Loop over the residue locations.
 for k = 1 : num_residues
-    
-    fprintf('On residue %d of %d\n', k, num_residues);
-    
+
     % Set the "been searched" flag to zero for the whole field.
     flags_matrix = bitset(flags_matrix, been_searched_bit_position, 0);
     
@@ -96,13 +94,6 @@ for k = 1 : num_residues
         
         % Loop over each box size.
         for box_size =  initial_box_size : 2 : MAX_BOX_SIZE
-           
-            % Set the coordinates of the anchor pixel for the box search.
-            % This starts out at the same position as the residue pixel,
-            % but can change to the positions of other residues found within
-            % the search box.
-            row_anchor = r;
-            col_anchor = c;
             
             % Determine the extents of the search box.
             [box_rows_01, box_cols_01] = find_box_coordinates([r, c], ...
@@ -117,16 +108,11 @@ for k = 1 : num_residues
             % The "_local" name here is meant to indicate that these
             % are the coordinates in the frame of the box, not in the
             % overall residue matrix.
-             [residue_box_rows_local, residue_box_cols_local] = ...
+             [residue_box_rows, residue_box_cols] = ...
                  find_residue_positions(RESIDUE_MATRIX...
                  (box_rows_01(1) : box_rows_01(end), ...
-                         box_cols_01(1) : box_cols_01(end)));
-             
-             % Convert the coordinates of the residues from the
-             % box-coordinates to the overall grid coordinates.
-             residue_box_rows = residue_box_rows_local + box_rows_01(1) - 1;
-             residue_box_cols = residue_box_cols_local + box_cols_01(1) - 1;
-                     
+                         box_cols_01(1) : box_cols_01(end)), [r, c]);
+                                  
             % Loop over the number of residues contained in the box.
             for n = 1 : num_residues_in_box
                 
@@ -184,7 +170,7 @@ for k = 1 : num_residues
             
             % Loop over the box pixels.
                 for p = 1 : num_box_pixels
-                
+                    
                     % Get the flags for the box pixel
                     flag_vals = flags_matrix(box_rows(p), box_cols(p));
                 
@@ -251,7 +237,7 @@ for k = 1 : num_residues
                     if net_charge == 0
                         break;
                     end
-                
+                    
                 end % End looping over box pixels.
                 
                 % Break the loop if the net charge goes to zero.
@@ -277,19 +263,17 @@ for k = 1 : num_residues
             
         end
     end
-    
-    % Plot the residue matrix.
-    imagesc(RESIDUE_MATRIX + branch_cut_matrix);
-    axis image;
-    
+            
 end
 
-
+% Set branch cut pixels to one.
+branch_cut_matrix(branch_cut_matrix > 0) = 1;
 
 end
 
 
 function charge = get_charge(residue)
+% This function calculates the charge of a residue as +/- 1
     charge = 1 - (2 * (residue < 0));
 end
 
@@ -364,7 +348,7 @@ row_distance = r2 - r1;
 col_distance = c2 - c1;
 
 % Euclidian distance between the two residues
-euc_distance = ceil(sqrt(row_distance .^2 + col_distance .^2));
+euc_distance = floor(sqrt(row_distance .^2 + col_distance .^2));
 
 % Angle between the residues
 residue_angle = atan2(row_distance, col_distance);
@@ -476,10 +460,10 @@ end
 
 
 % Determine the positions of all of the residues in the box.
-function [reside_box_rows, residue_box_cols] = find_residue_positions(RESIDUE_MAT);
+function [residue_box_rows, residue_box_cols] = find_residue_positions(RESIDUE_MAT, POS);
 
 % Size of the flags matrix
-[height, ~] = size(RESIDUE_MAT);
+[height, width] = size(RESIDUE_MAT);
 
 % Find the residues
 idx = find(RESIDUE_MAT ~= 0);
@@ -487,9 +471,39 @@ idx = find(RESIDUE_MAT ~= 0);
 % Determine the row and column position of the residue.
 % The following lines are equivalent to (but faster than):
 % [r, c] = ind2sub([height, width], residue_locs(k));
-reside_box_rows = rem(idx - 1, height) + 1;
-residue_box_cols = (idx - reside_box_rows) / height + 1;
-   
+residue_box_rows_local = rem(idx - 1, height) + 1;
+residue_box_cols_local = (idx - residue_box_rows_local) / height + 1;
+
+% Row and col of anchor position
+r = POS(1);
+c = POS(2);
+
+% Centroid
+xc = (width  +  1) / 2 - 0.5 * (1 - mod(width,  2));
+yc = (height + 1) / 2 - 0.5 * (1 - mod(height, 2));
+
+% Global position
+residue_box_rows = residue_box_rows_local - yc + r;
+residue_box_cols = residue_box_cols_local - xc + c;
+
+% Need to always put the centered pixel coordinates first...
+
+% Find the position of the original pixel
+I = find(residue_box_rows == r & residue_box_cols == c);
+
+% Remove the anchor residue if more than one residues
+% are detected.
+if I > 1
+    % Remove the original pixel location from within the stack
+    residue_box_rows(I) = [];
+    residue_box_cols(I) = [];
+    
+    % Put the original pixel on the top of the stack
+    residue_box_rows = cat(1, r, residue_box_rows);
+    residue_box_cols = cat(1, c, residue_box_cols);
+    
+end
+
 end
 
 function BRANCH_CUT_MATRIX = branch_cut_to_edge(BRANCH_CUT_MATRIX, LOC)
