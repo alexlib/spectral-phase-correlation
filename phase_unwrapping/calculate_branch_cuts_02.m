@@ -177,6 +177,7 @@ for k = 1 : num_residues
                 flags_matrix(row_anchor, col_anchor) = ...
                     bitset(flags_matrix(row_anchor, col_anchor), ...
                     been_searched_bit_position, 1);
+            end
                 
                 % Determine the number of box pixels.
                 num_box_pixels = length(box_rows);
@@ -210,7 +211,6 @@ for k = 1 : num_residues
                     % Check if the box pixel is both a residue and not already active   
                     elseif (bitget(flag_vals, positive_residue_bit_position) ...
                             || bitget(flag_vals, negative_residue_bit_position));
-    %                         && ~bitget(flag_vals, active_residue_bit_position);
                     
                         % Check if the pixel is balanced.
                         isBalanced = ...
@@ -230,7 +230,7 @@ for k = 1 : num_residues
                             flags_matrix(box_rows(p), box_cols(p)) = ...
                                 bitset(flags_matrix(box_rows(p), box_cols(p)), ...
                                 balanced_charge_bit_position, 1); 
-                        end
+                        end % End checking for balanced charge.
                     
                         % Set the pixel to active.
                         flags_matrix(box_rows(p), box_cols(p)) = ...
@@ -246,44 +246,6 @@ for k = 1 : num_residues
                     
                     end % End box pixel conditions
 
-                    % Do some plotting
-                    %%%%%%%%%%%%%
-
-                    % Plot the phase residue matrix.
-                    imagesc(RESIDUE_MATRIX + branch_cut_matrix); 
-                    axis image;
-                    hold on
-
-                    % Plot the box extents
-                    minbr = min(box_rows);
-                    maxbr = max(box_rows);
-                    minbc = min(box_cols);
-                    maxbc = max(box_cols);
-
-                    % Plot the search box.
-                    plot([minbc, minbc, maxbc, maxbc, minbc], ...
-                         [minbr, maxbr, maxbr, minbr, minbr], '-w');
-
-                    % Plot the anchor pixel
-                    plot(col_anchor, row_anchor,   'ow', 'markerfacecolor', 'black', 'markersize', 10);
-
-                    % Plot the box search pixel.
-                    plot(box_cols(p), box_rows(p), 'ow', 'markerfacecolor', 'white');
-
-                    % Release plot hold
-                    hold off
-
-                    % Print box size
-                    fprintf('Box size: %d\n', box_size);
-                    
-                    % Inform the user of the net charge.
-                    fprintf('Net charge = %d\n\n', net_charge);
-
-                    % Pause
-                    drawnow;
-
-                    %%%%%%%%%%%%%
-
                     % Break the loop-over-box-pixels loop
                     % if the net charge is zero.
                     if net_charge == 0
@@ -291,8 +253,6 @@ for k = 1 : num_residues
                     end
                 
                 end % End looping over box pixels.
-                
-            end
                 
                 % Break the loop if the net charge goes to zero.
                 if net_charge == 0
@@ -312,12 +272,16 @@ for k = 1 : num_residues
         % active pixel to the nearest border.
         if net_charge ~= 0
             
-        % branch_cut_to_edge
-        branch_cut_matrix = branch_cut_to_edge(branch_cut_matrix, [r, c]);
+            % branch_cut_to_edge
+            branch_cut_matrix = branch_cut_to_edge(branch_cut_matrix, [r, c]);
             
         end
-        
-    end 
+    end
+    
+    % Plot the residue matrix.
+    imagesc(RESIDUE_MATRIX + branch_cut_matrix);
+    axis image;
+    
 end
 
 
