@@ -1,4 +1,4 @@
-function [branch_cut_matrix, flags_matrix] = calculate_branch_cuts_02(RESIDUE_MATRIX, MAX_BOX_SIZE);
+function [branch_cut_matrix, flags_matrix] = calculate_branch_cuts_goldstein(RESIDUE_MATRIX, MAX_BOX_SIZE);
 
 % Determine matrix height and width
 [height, width] = size(RESIDUE_MATRIX);
