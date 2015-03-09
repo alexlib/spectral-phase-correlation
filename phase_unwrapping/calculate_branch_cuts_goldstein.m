@@ -123,9 +123,13 @@ for k = 1 : num_residues
                 
                 % Determine the extents of the search box centered
                 % at the current anchor pixel.
-                [box_rows_01, box_cols_01] = ...
+%                 [box_rows_01, box_cols_01] = ...
+%                     find_box_coordinates([row_anchor, col_anchor], ...
+%                     [height, width], box_size);
+                [box_rows, box_cols] = ...
                     find_box_coordinates([row_anchor, col_anchor], ...
                     [height, width], box_size);
+
 
                 % Determine whether the box around this pixel has been
                 % searched yet.
@@ -136,35 +140,41 @@ for k = 1 : num_residues
              % that will actually be searched for residues to not
              % include pixels that have already been searched within 
              % the same box.
-            if has_been_searched
-                % Determine the extents of the search box one size smaller
-                [box_rows_02, box_cols_02] = find_box_coordinates(...
-                    [row_anchor, col_anchor], [height, width], ...
-                    box_size - 2);
-            
-                % Set the search box to only search those pixels
-                % that have not already been searched, i.e., 
-                % don't include the box pixels from the box one size smaller
-                box_coords = setdiff([box_rows_01, box_cols_01],...
-                    [box_rows_02, box_cols_02], 'rows');
-            
-                % Extract the box rows and columns
-                % from the box coordinates array.
-                box_rows = box_coords(:, 1);
-                box_cols = box_coords(:, 2);                
-            else
-               
-                % If the box size is the initial box size,
-                % then search all the box pixels. 
-                box_rows = box_rows_01;
-                box_cols = box_cols_01;
-                
-                % Set the "been searched" flag to true
-                flags_matrix(row_anchor, col_anchor) = ...
-                    bitset(flags_matrix(row_anchor, col_anchor), ...
-                    been_searched_bit_position, 1);
-            end
-                
+%             if has_been_searched
+%                 % Determine the extents of the search box one size smaller
+%                 [box_rows_02, box_cols_02] = find_box_coordinates(...
+%                     [row_anchor, col_anchor], [height, width], ...
+%                     box_size - 2);
+%             
+%                 % Set the search box to only search those pixels
+%                 % that have not already been searched, i.e., 
+%                 % don't include the box pixels from the box one size smaller
+%                 %
+%                 % Note that this call to setdiff is breaking the compiled
+%                 % version of the code.
+% %                 box_rows = setdiff_sorted(box_rows_01, box_rows_02);
+% %                 box_cols = setdiff_sorted(box_cols_01, box_cols_02);
+%                 box_coords = setdiff([box_rows_01, box_cols_01],...
+%                     [box_rows_02, box_cols_02], 'rows');
+%             
+%                 % Extract the box rows and columns
+%                 % from the box coordinates array.
+%                 box_rows = box_coords(:, 1);
+%                 box_cols = box_coords(:, 2);    
+%                 
+%             else
+%                
+%                 % If the box size is the initial box size,
+%                 % then search all the box pixels. 
+%                 box_rows = box_rows_01;
+%                 box_cols = box_cols_01;
+%                 
+%                 % Set the "been searched" flag to true
+%                 flags_matrix(row_anchor, col_anchor) = ...
+%                     bitset(flags_matrix(row_anchor, col_anchor), ...
+%                     been_searched_bit_position, 1);
+%             end
+%                 
                 % Determine the number of box pixels.
                 num_box_pixels = length(box_rows);
             
@@ -173,70 +183,76 @@ for k = 1 : num_residues
                     
                     % Get the flags for the box pixel
                     flag_vals = flags_matrix(box_rows(p), box_cols(p));
+                    
+                    if ~bitget(flag_vals, been_searched_bit_position)
                 
-                    % Check if box pixel is a border pixel.
-                    if bitget(flag_vals, image_border_bit_position);
-                    
-                        % Set the residue to balanced
-                        % if the box contains a border pixel.
-                        flags_matrix(row_anchor, col_anchor) = ...
-                            bitset(flags_matrix(row_anchor, col_anchor), ...
-                            balanced_charge_bit_position, 1);
+                        % Check if box pixel is a border pixel.
+                        if bitget(flag_vals, image_border_bit_position);
 
-                        % Set the net charge in the box to zero
-                        % if the box contains a border pixel.
-                        net_charge = 0;
+                            % Set the residue to balanced
+                            % if the box contains a border pixel.
+                            flags_matrix(row_anchor, col_anchor) = ...
+                                bitset(flags_matrix(row_anchor, col_anchor), ...
+                                balanced_charge_bit_position, 1);
 
-                        % Place a branch cut between the active pixel
-                        % and the box (border) pixel
-                        branch_cut_matrix = ...
-                            place_branch_cut(branch_cut_matrix, ...
-                            [box_rows(p), box_cols(p)],...
-                            [row_anchor, col_anchor]); 
-                                        
-                    % Check if the box pixel is both a residue and not already active   
-                    elseif (bitget(flag_vals, positive_residue_bit_position) ...
-                            || bitget(flag_vals, negative_residue_bit_position));
-                    
-                        % Check if the pixel is balanced.
-                        isBalanced = ...
-                            bitget(flags_matrix(box_rows(p), box_cols(p)), ...
-                            balanced_charge_bit_position);
-                    
-                        % If the pixel is not already balanced, add its
-                        % polarity to to the net charge and mark as balanced.
-                        if ~isBalanced
+                            % Set the net charge in the box to zero
+                            % if the box contains a border pixel.
+                            net_charge = 0;
 
-                            % Add the pixel's charge to the net charge.
-                            net_charge = net_charge + ...
-                                get_charge(RESIDUE_MATRIX(box_rows(p), ...
-                                box_cols(p)));
+                            % Place a branch cut between the active pixel
+                            % and the box (border) pixel
+                            branch_cut_matrix = ...
+                                place_branch_cut(branch_cut_matrix, ...
+                                [box_rows(p), box_cols(p)],...
+                                [row_anchor, col_anchor]); 
 
-                            % Set the pixel to balanced.
+                        % Check if the box pixel is both a residue and not already active   
+                        elseif (bitget(flag_vals, positive_residue_bit_position) ...
+                                || bitget(flag_vals, negative_residue_bit_position));
+
+                            % Check if the pixel is balanced.
+                            isBalanced = ...
+                                bitget(flags_matrix(box_rows(p), box_cols(p)), ...
+                                balanced_charge_bit_position);
+
+                            % If the pixel is not already balanced, add its
+                            % polarity to to the net charge and mark as balanced.
+                            if ~isBalanced
+
+                                % Add the pixel's charge to the net charge.
+                                net_charge = net_charge + ...
+                                    get_charge(RESIDUE_MATRIX( ...
+                                    box_rows(p), box_cols(p)));
+
+                                % Set the pixel to balanced.
+                                flags_matrix(box_rows(p), box_cols(p)) = ...
+                                    bitset(flags_matrix(box_rows(p), ...
+                                    box_cols(p)), ...
+                                    balanced_charge_bit_position, 1); 
+                            end % End checking for balanced charge.
+
+                            % Set the pixel to active.
                             flags_matrix(box_rows(p), box_cols(p)) = ...
-                                bitset(flags_matrix(box_rows(p), box_cols(p)), ...
-                                balanced_charge_bit_position, 1); 
-                        end % End checking for balanced charge.
-                    
-                        % Set the pixel to active.
-                        flags_matrix(box_rows(p), box_cols(p)) = ...
-                           bitset(flags_matrix(box_rows(p), box_cols(p)), ...
-                            active_residue_bit_position, 1);
+                               bitset(flags_matrix(box_rows(p), ...
+                               box_cols(p)), ...
+                                active_residue_bit_position, 1);
 
-                        % Place a branch cut between that pixel and the residue
-                        % at which the box is centered.
-                        branch_cut_matrix = ...
-                            place_branch_cut(branch_cut_matrix, ...
-                            [row_anchor, col_anchor],...
-                            [box_rows(p), box_cols(p)]);
-                    
-                    end % End box pixel conditions
+                            % Place a branch cut between that pixel 
+                            % and the residue at which the box is centered.
+                            branch_cut_matrix = ...
+                                place_branch_cut(branch_cut_matrix, ...
+                                [row_anchor, col_anchor],...
+                                [box_rows(p), box_cols(p)]);
 
-                    % Break the loop-over-box-pixels loop
-                    % if the net charge is zero.
-                    if net_charge == 0
-                        break;
-                    end
+                        end % End box pixel conditions
+
+                        % Break the loop-over-box-pixels loop
+                        % if the net charge is zero.
+                        if net_charge == 0
+                            break;
+                        end
+
+                    end % End (if pixel has not been searched)
                     
                 end % End looping over box pixels.
                 
@@ -489,18 +505,28 @@ residue_box_cols = residue_box_cols_local - xc + c;
 % Need to always put the centered pixel coordinates first...
 
 % Find the position of the original pixel
-I = find(residue_box_rows == r & residue_box_cols == c);
+I = find(residue_box_rows == r & residue_box_cols == c, 1);
 
-% Remove the anchor residue if more than one residues
-% are detected.
-if I > 1
-    % Remove the original pixel location from within the stack
-    residue_box_rows(I) = [];
-    residue_box_cols(I) = [];
+% If more than one residue is detected, 
+% then set the coordinates of the first residue
+% in the list to correspond to the anchor pixel.
+%
+% This if-statement is specified by "max(I(:))" rather
+% than just (if I > 1) because the code won't compile 
+% with the latter statement; the reason for this is 
+% apparently that the compiler doesn't know ahead of time
+% that I will contain exactly one element, even though
+% the call to "find()" above contained an argument specifying
+% to return only a single value. And since "max(I(:))" 
+% can only ever contain one value, the compiler accepts it
+% as a valid conditional statement. 
+% TL;DR, I had to do it this way to get it to compile. 
+if max(I(:)) > 1
     
-    % Put the original pixel on the top of the stack
-    residue_box_rows = cat(1, r, residue_box_rows);
-    residue_box_cols = cat(1, c, residue_box_cols);
+    % Swap the positions of the anchor pixel and the first pixel
+    % in the list of residue locations.
+    residue_box_rows([1, I]) = [residue_box_rows(I), residue_box_rows(1)];
+    residue_box_cols([1, I]) = [residue_box_cols(I), residue_box_cols(1)];
     
 end
 
