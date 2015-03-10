@@ -341,14 +341,13 @@ function BRANCH_CUT_MATRIX = place_branch_cut(BRANCH_CUT_MATRIX,...
 % This function places a branch cut in the branch cut matrix.
 
 % Determine size of matrix
-[height, width] = size(BRANCH_CUT_MATRIX);
+height = size(BRANCH_CUT_MATRIX, 1);
 
 % Find the pixels corresponding to the branch cut
 [branch_cut_rows, branch_cut_cols] = find_branch_cut_pixels(POINTS_01, ...
                                                             POINTS_02);
 % Find the indices of the branch cut pixels.
-branch_cut_indices = sub2ind([height, width], ...
-    branch_cut_rows, branch_cut_cols);
+branch_cut_indices = branch_cut_rows + (branch_cut_cols - 1) * height;
                                                         
 % Set those pixels to one in the branch cut matrix.
 BRANCH_CUT_MATRIX(branch_cut_indices) = 1;
@@ -409,25 +408,6 @@ function NUM_RESIDUES = count_residues(RESIDUE_MATRIX)
 % region.
 
 NUM_RESIDUES = sum(abs(RESIDUE_MATRIX(:)) > 0);
-
-% % Positive residue bit position
-% positive_residue_bit_position = 1;
-% negative_residue_bit_position = 2;
-% 
-% % Number of positive residues
-% num_positive_residues = sum(bitget(FLAGS_MATRIX(:), ...
-%     positive_residue_bit_position));
-% 
-% % Number of negative residues
-% num_negative_residues = sum(bitget(FLAGS_MATRIX(:), ...
-%     negative_residue_bit_position));
-% 
-% % Count the number of residues
-% NUM_RESIDUES = num_positive_residues + num_negative_residues;
-% 
-% % Calculate the net charge as the difference between
-% % the numbers of positive and negative residues.
-% NET_CHARGE = num_positive_residues - num_negative_residues;
 
 end
 
