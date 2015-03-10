@@ -69,9 +69,6 @@ num_residues = length(residue_locs);
 
 % Loop over the residue locations.
 for k = 1 : num_residues
-
-    % Set the "been searched" flag to zero for the whole field.
-    flags_matrix = bitset(flags_matrix, been_searched_bit_position, 0);
     
     % Determine the row and column position of the residue.
     % The following lines are equivalent to (but faster than):
@@ -126,11 +123,6 @@ for k = 1 : num_residues
                     find_box_coordinates([row_anchor, col_anchor], ...
                     [height, width], box_size);
 
-                % Determine whether the box around this pixel has been
-                % searched yet.
-                has_been_searched = bitget(flags_matrix(row_anchor, col_anchor), ...
-                    been_searched_bit_position);
-                  
                 % Determine the number of box pixels.
                 num_box_pixels = length(box_rows);
             
@@ -140,8 +132,6 @@ for k = 1 : num_residues
                     % Get the flags for the box pixel
                     flag_vals = flags_matrix(box_rows(p), box_cols(p));
                     
-                    if ~bitget(flag_vals, been_searched_bit_position)
-                
                         % Check if box pixel is a border pixel.
                         if bitget(flag_vals, image_border_bit_position);
 
@@ -207,8 +197,6 @@ for k = 1 : num_residues
                         if net_charge == 0
                             break;
                         end
-
-                    end % End (if pixel has not been searched)
                     
                 end % End looping over box pixels.
                 
