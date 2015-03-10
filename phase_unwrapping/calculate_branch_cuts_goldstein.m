@@ -324,15 +324,14 @@ euc_distance = floor(sqrt(row_distance .^2 + col_distance .^2));
 % Angle between the residues
 residue_angle = atan2(row_distance, col_distance);
 
+% Euclidean distance vector
+euc_vector = 0 : euc_distance;
+
 % Row pixels in the branch cut
-BRANCH_CUT_ROWS = round(r1 + (0 : euc_distance) * sin(residue_angle));
+BRANCH_CUT_ROWS = round(r1 + euc_vector * sin(residue_angle));
 
 % Column pixels in the branch cut
-BRANCH_CUT_COLS = round(c1 + (0 : euc_distance) * cos(residue_angle));
-
-% Form into vectors
-BRANCH_CUT_ROWS = BRANCH_CUT_ROWS(:);
-BRANCH_CUT_COLS = BRANCH_CUT_COLS(:);
+BRANCH_CUT_COLS = round(c1 + euc_vector * cos(residue_angle));
 
 end
 
