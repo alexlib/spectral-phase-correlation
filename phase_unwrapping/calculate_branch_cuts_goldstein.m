@@ -101,7 +101,7 @@ for k = 1 : num_residues
             
             % Count the number of residues in the box
             num_residues_in_box = count_residues( ...
-            flags_matrix(box_rows_01(1) : box_rows_01(end), ...
+            RESIDUE_MATRIX(box_rows_01(1) : box_rows_01(end), ...
                          box_cols_01(1) : box_cols_01(end)));
                      
             % Determine the positions of all of the residues in the box. 
@@ -122,16 +122,17 @@ for k = 1 : num_residues
                 col_anchor = residue_box_cols(n);
                 
                 % Determine the extents of the search box centered
-                % at the current anchor pixel.
                 [box_rows, box_cols] = ...
                     find_box_coordinates([row_anchor, col_anchor], ...
                     [height, width], box_size);
-                               
+
+                % Determine whether the box around this pixel has been
+                % searched yet.
+                has_been_searched = bitget(flags_matrix(row_anchor, col_anchor), ...
+                    been_searched_bit_position);
+                  
                 % Determine the number of box pixels.
                 num_box_pixels = length(box_rows);
-                
-                % Set all the "been searched" bit flags to zero.
-                flags_matrix = bitset(flags_matrix, been_searched_bit_position, 0);
             
             % Loop over the box pixels.
                 for p = 1 : num_box_pixels
@@ -215,8 +216,7 @@ for k = 1 : num_residues
                 if net_charge == 0
                     break
                 end
-                
-            end % End (for n = 1 : num_residues_in_box)
+            end
             
             % Break the loop if the net charge is zero.
             if net_charge == 0
@@ -330,9 +330,9 @@ BRANCH_CUT_ROWS = round(r1 + (0 : euc_distance) * sin(residue_angle));
 % Column pixels in the branch cut
 BRANCH_CUT_COLS = round(c1 + (0 : euc_distance) * cos(residue_angle));
 
-% % Form into vectors
-% BRANCH_CUT_ROWS = BRANCH_CUT_ROWS(:);
-% BRANCH_CUT_COLS = BRANCH_CUT_COLS(:);
+% Form into vectors
+BRANCH_CUT_ROWS = BRANCH_CUT_ROWS(:);
+BRANCH_CUT_COLS = BRANCH_CUT_COLS(:);
 
 end
 
@@ -341,15 +341,14 @@ function BRANCH_CUT_MATRIX = place_branch_cut(BRANCH_CUT_MATRIX,...
 % This function places a branch cut in the branch cut matrix.
 
 % Determine size of matrix
-height = size(BRANCH_CUT_MATRIX, 1);
+[height, width] = size(BRANCH_CUT_MATRIX);
 
 % Find the pixels corresponding to the branch cut
 [branch_cut_rows, branch_cut_cols] = find_branch_cut_pixels(POINTS_01, ...
                                                             POINTS_02);
 % Find the indices of the branch cut pixels.
-% branch_cut_indices = sub2ind([height, width], ...
-%     branch_cut_rows, branch_cut_cols);
-branch_cut_indices = branch_cut_rows + (branch_cut_cols - 1) * height;
+branch_cut_indices = sub2ind([height, width], ...
+    branch_cut_rows, branch_cut_cols);
                                                         
 % Set those pixels to one in the branch cut matrix.
 BRANCH_CUT_MATRIX(branch_cut_indices) = 1;
@@ -392,38 +391,43 @@ FLAGS_MATRIX(:, width) = bitset(FLAGS_MATRIX(1, :), ...
 
 % Loop over all the pixels in the residue matrix
 % Set the positive residue flags 
-FLAGS_MATRIX(FLAGS_MATRIX > 0) = bitset(FLAGS_MATRIX(FLAGS_MATRIX > 0), ...
-    positive_residue_bit_position, 1);
+for k = 1 : length(RESIDUE_MATRIX(:))
+    if RESIDUE_MATRIX(k) > 0
+        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), positive_residue_bit_position, 1);
+    elseif RESIDUE_MATRIX(k) < 0
+        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), negative_residue_bit_position, 1);
+    end 
+end
 
-FLAGS_MATRIX(FLAGS_MATRIX < 0) = bitset(FLAGS_MATRIX(FLAGS_MATRIX < 0), ...
-    negative_residue_bit_position, 1);
 
 end
 
 
-function [NUM_RESIDUES, NET_CHARGE] = count_residues(FLAGS_MATRIX)
+function NUM_RESIDUES = count_residues(RESIDUE_MATRIX)
 % This function counts the total number of residues contained
 % in a matrix of residue flags, and also returns the net charge in the
 % region.
 
-% Positive residue bit position
-positive_residue_bit_position = 1;
-negative_residue_bit_position = 2;
+NUM_RESIDUES = sum(abs(RESIDUE_MATRIX(:)) > 0);
 
-% Number of positive residues
-num_positive_residues = sum(bitget(FLAGS_MATRIX(:), ...
-    positive_residue_bit_position));
-
-% Number of negative residues
-num_negative_residues = sum(bitget(FLAGS_MATRIX(:), ...
-    negative_residue_bit_position));
-
-% Count the number of residues
-NUM_RESIDUES = num_positive_residues + num_negative_residues;
-
-% Calculate the net charge as the difference between
-% the numbers of positive and negative residues.
-NET_CHARGE = num_positive_residues - num_negative_residues;
+% % Positive residue bit position
+% positive_residue_bit_position = 1;
+% negative_residue_bit_position = 2;
+% 
+% % Number of positive residues
+% num_positive_residues = sum(bitget(FLAGS_MATRIX(:), ...
+%     positive_residue_bit_position));
+% 
+% % Number of negative residues
+% num_negative_residues = sum(bitget(FLAGS_MATRIX(:), ...
+%     negative_residue_bit_position));
+% 
+% % Count the number of residues
+% NUM_RESIDUES = num_positive_residues + num_negative_residues;
+% 
+% % Calculate the net charge as the difference between
+% % the numbers of positive and negative residues.
+% NET_CHARGE = num_positive_residues - num_negative_residues;
 
 end
 
