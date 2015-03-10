@@ -27,5 +27,5 @@ wrapped_phase_plane = fftshift(angle(phaseCorrelation(image_01, image_02)));
 
 tic;
 % Calculate residues
-phase_residue_matrix = calculate_phase_residues(wrapped_phase_plane);
+phase_residue_matrix = calculate_phase_residues_mex(wrapped_phase_plane);
 toc;

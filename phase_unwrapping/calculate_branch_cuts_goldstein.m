@@ -123,60 +123,15 @@ for k = 1 : num_residues
                 
                 % Determine the extents of the search box centered
                 % at the current anchor pixel.
-%                 [box_rows_01, box_cols_01] = ...
-%                     find_box_coordinates([row_anchor, col_anchor], ...
-%                     [height, width], box_size);
                 [box_rows, box_cols] = ...
                     find_box_coordinates([row_anchor, col_anchor], ...
                     [height, width], box_size);
-
-
-                % Determine whether the box around this pixel has been
-                % searched yet.
-                has_been_searched = bitget(flags_matrix(row_anchor, col_anchor), ...
-                    been_searched_bit_position);
-                
-             % This if-statement sets the coordinates of the pixels
-             % that will actually be searched for residues to not
-             % include pixels that have already been searched within 
-             % the same box.
-%             if has_been_searched
-%                 % Determine the extents of the search box one size smaller
-%                 [box_rows_02, box_cols_02] = find_box_coordinates(...
-%                     [row_anchor, col_anchor], [height, width], ...
-%                     box_size - 2);
-%             
-%                 % Set the search box to only search those pixels
-%                 % that have not already been searched, i.e., 
-%                 % don't include the box pixels from the box one size smaller
-%                 %
-%                 % Note that this call to setdiff is breaking the compiled
-%                 % version of the code.
-% %                 box_rows = setdiff_sorted(box_rows_01, box_rows_02);
-% %                 box_cols = setdiff_sorted(box_cols_01, box_cols_02);
-%                 box_coords = setdiff([box_rows_01, box_cols_01],...
-%                     [box_rows_02, box_cols_02], 'rows');
-%             
-%                 % Extract the box rows and columns
-%                 % from the box coordinates array.
-%                 box_rows = box_coords(:, 1);
-%                 box_cols = box_coords(:, 2);    
-%                 
-%             else
-%                
-%                 % If the box size is the initial box size,
-%                 % then search all the box pixels. 
-%                 box_rows = box_rows_01;
-%                 box_cols = box_cols_01;
-%                 
-%                 % Set the "been searched" flag to true
-%                 flags_matrix(row_anchor, col_anchor) = ...
-%                     bitset(flags_matrix(row_anchor, col_anchor), ...
-%                     been_searched_bit_position, 1);
-%             end
-%                 
+                               
                 % Determine the number of box pixels.
                 num_box_pixels = length(box_rows);
+                
+                % Set all the "been searched" bit flags to zero.
+                flags_matrix = bitset(flags_matrix, been_searched_bit_position, 0);
             
             % Loop over the box pixels.
                 for p = 1 : num_box_pixels
@@ -261,7 +216,7 @@ for k = 1 : num_residues
                     break
                 end
                 
-            end
+            end % End (for n = 1 : num_residues_in_box)
             
             % Break the loop if the net charge is zero.
             if net_charge == 0
@@ -375,9 +330,9 @@ BRANCH_CUT_ROWS = round(r1 + (0 : euc_distance) * sin(residue_angle));
 % Column pixels in the branch cut
 BRANCH_CUT_COLS = round(c1 + (0 : euc_distance) * cos(residue_angle));
 
-% Form into vectors
-BRANCH_CUT_ROWS = BRANCH_CUT_ROWS(:);
-BRANCH_CUT_COLS = BRANCH_CUT_COLS(:);
+% % Form into vectors
+% BRANCH_CUT_ROWS = BRANCH_CUT_ROWS(:);
+% BRANCH_CUT_COLS = BRANCH_CUT_COLS(:);
 
 end
 
@@ -386,14 +341,15 @@ function BRANCH_CUT_MATRIX = place_branch_cut(BRANCH_CUT_MATRIX,...
 % This function places a branch cut in the branch cut matrix.
 
 % Determine size of matrix
-[height, width] = size(BRANCH_CUT_MATRIX);
+height = size(BRANCH_CUT_MATRIX, 1);
 
 % Find the pixels corresponding to the branch cut
 [branch_cut_rows, branch_cut_cols] = find_branch_cut_pixels(POINTS_01, ...
                                                             POINTS_02);
 % Find the indices of the branch cut pixels.
-branch_cut_indices = sub2ind([height, width], ...
-    branch_cut_rows, branch_cut_cols);
+% branch_cut_indices = sub2ind([height, width], ...
+%     branch_cut_rows, branch_cut_cols);
+branch_cut_indices = branch_cut_rows + (branch_cut_cols - 1) * height;
                                                         
 % Set those pixels to one in the branch cut matrix.
 BRANCH_CUT_MATRIX(branch_cut_indices) = 1;
@@ -436,14 +392,11 @@ FLAGS_MATRIX(:, width) = bitset(FLAGS_MATRIX(1, :), ...
 
 % Loop over all the pixels in the residue matrix
 % Set the positive residue flags 
-for k = 1 : length(RESIDUE_MATRIX(:))
-    if RESIDUE_MATRIX(k) > 0
-        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), positive_residue_bit_position, 1);
-    elseif RESIDUE_MATRIX(k) < 0
-        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), negative_residue_bit_position, 1);
-    end 
-end
+FLAGS_MATRIX(FLAGS_MATRIX > 0) = bitset(FLAGS_MATRIX(FLAGS_MATRIX > 0), ...
+    positive_residue_bit_position, 1);
 
+FLAGS_MATRIX(FLAGS_MATRIX < 0) = bitset(FLAGS_MATRIX(FLAGS_MATRIX < 0), ...
+    negative_residue_bit_position, 1);
 
 end
 
