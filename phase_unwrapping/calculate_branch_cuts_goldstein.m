@@ -147,9 +147,9 @@ for k = 1 : num_residues
 
                             % Place a branch cut between the active pixel
                             % and the box (border) pixel
-                            branch_cut_matrix = ...
+                            [branch_cut_matrix, flags_matrix] = ...
                                 place_branch_cut(branch_cut_matrix, ...
-                                [box_rows(p), box_cols(p)],...
+                                flags_matrix, [box_rows(p), box_cols(p)],...
                                 [row_anchor, col_anchor]); 
 
                         % Check if the box pixel is both a residue and not already active   
@@ -185,8 +185,9 @@ for k = 1 : num_residues
 
                             % Place a branch cut between that pixel 
                             % and the residue at which the box is centered.
-                            branch_cut_matrix = ...
+                            [branch_cut_matrix, flags_matrix] = ...
                                 place_branch_cut(branch_cut_matrix, ...
+                                flags_matrix, ...
                                 [row_anchor, col_anchor],...
                                 [box_rows(p), box_cols(p)]);
 
@@ -218,7 +219,9 @@ for k = 1 : num_residues
         if net_charge ~= 0
             
             % branch_cut_to_edge
-            branch_cut_matrix = branch_cut_to_edge(branch_cut_matrix, [r, c]);
+            [branch_cut_matrix, flags_matrix] = ...
+                branch_cut_to_edge(branch_cut_matrix, flags_matrix, ...
+                [r, c]);
             
         end
     end
@@ -323,9 +326,14 @@ BRANCH_CUT_COLS = round(c1 + euc_vector * cos(residue_angle));
 
 end
 
-function BRANCH_CUT_MATRIX = place_branch_cut(BRANCH_CUT_MATRIX,...
-    POINTS_01, POINTS_02)
+function [BRANCH_CUT_MATRIX, FLAGS_MATRIX] = place_branch_cut(BRANCH_CUT_MATRIX,...
+    FLAGS_MATRIX, POINTS_01, POINTS_02)
 % This function places a branch cut in the branch cut matrix.
+
+% This is the little-endian bit position of the 
+% bit in each 8-bit element of the FLAGS_MATRIX array that indicates
+% whether or not the pixel lies on a branch cut. 
+branch_cut_bit_position = 3;
 
 % Determine size of matrix
 height = size(BRANCH_CUT_MATRIX, 1);
@@ -335,6 +343,10 @@ height = size(BRANCH_CUT_MATRIX, 1);
                                                             POINTS_02);
 % Find the indices of the branch cut pixels.
 branch_cut_indices = branch_cut_rows + (branch_cut_cols - 1) * height;
+
+% Set the "branch cut" flag to one at the branch cut indices.
+FLAGS_MATRIX(branch_cut_indices) = bitset( ...
+    FLAGS_MATRIX(branch_cut_indices), branch_cut_bit_position, 1);
                                                         
 % Set those pixels to one in the branch cut matrix.
 BRANCH_CUT_MATRIX(branch_cut_indices) = 1;
@@ -456,7 +468,8 @@ end
 
 end
 
-function BRANCH_CUT_MATRIX = branch_cut_to_edge(BRANCH_CUT_MATRIX, LOC)
+function [BRANCH_CUT_MATRIX, FLAGS_MATRIX] = branch_cut_to_edge(...
+    BRANCH_CUT_MATRIX, FLAGS_MATRIX, LOC)
 
 % Measure height and width of the branch cut matrix.
 [height, width] = size(BRANCH_CUT_MATRIX);
@@ -478,7 +491,8 @@ edge_coords = [1, col; height, col; row, 1; row, width];
 border_cut_pos = edge_coords(min_loc, :);
 
 % Place the branch cut.
-BRANCH_CUT_MATRIX = place_branch_cut(BRANCH_CUT_MATRIX, LOC, border_cut_pos);
+[BRANCH_CUT_MATRIX, FLAGS_MATRIX] = place_branch_cut(...
+    BRANCH_CUT_MATRIX, FLAGS_MATRIX, LOC, border_cut_pos);
 
 end
 
