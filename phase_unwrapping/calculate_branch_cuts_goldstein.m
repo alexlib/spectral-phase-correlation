@@ -69,7 +69,7 @@ num_residues = length(residue_locs);
 
 % Loop over the residue locations.
 for k = 1 : num_residues
-    
+   
     % Determine the row and column position of the residue.
     % The following lines are equivalent to (but faster than):
     % [r, c] = ind2sub([height, width], residue_locs(k));
@@ -98,17 +98,19 @@ for k = 1 : num_residues
             
             % Count the number of residues in the box
             num_residues_in_box = count_residues( ...
-            RESIDUE_MATRIX(box_rows_01(1) : box_rows_01(end), ...
-                         box_cols_01(1) : box_cols_01(end)));
-                     
+            RESIDUE_MATRIX(min(box_rows_01) : max(box_rows_01), ...
+                         min(box_cols_01) : max(box_cols_01)));
+             
+             % Find the coordinates of all the residues in the box.
+             [residue_box_rows, residue_box_cols] = ...
+                 find_residue_positions(RESIDUE_MATRIX, ...
+                 box_rows_01, box_cols_01, residue_locs(k), ...
+                    num_residues_in_box);
+        
             % Determine the positions of all of the residues in the box. 
             % The "_local" name here is meant to indicate that these
             % are the coordinates in the frame of the box, not in the
-            % overall residue matrix.
-             [residue_box_rows, residue_box_cols] = ...
-                 find_residue_positions(RESIDUE_MATRIX...
-                 (box_rows_01(1) : box_rows_01(end), ...
-                         box_cols_01(1) : box_cols_01(end)), [r, c]);
+            % overall residue matrix.       
                                   
             % Loop over the number of residues contained in the box.
             for n = 1 : num_residues_in_box
@@ -412,59 +414,52 @@ end
 
 
 % Determine the positions of all of the residues in the box.
-function [residue_box_rows, residue_box_cols] = find_residue_positions(RESIDUE_MAT, POS);
+function [RESIDUE_BOX_ROWS, RESIDUE_BOX_COLS] = find_residue_positions( ...
+    RESIDUE_MAT, ROWS, COLS, ANCHOR_LOC, NUM_RESIDUES);
 
-% Size of the flags matrix
-[height, width] = size(RESIDUE_MAT);
+% Dimensions of the larger matrix
+height = size(RESIDUE_MAT, 1);
 
-% Find the residues
-idx = find(RESIDUE_MAT ~= 0);
+% Make vectors out of the row and column positions.
+row_vect = min(ROWS(:)) : max(ROWS(:));
+col_vect = min(COLS(:)) : max(COLS(:));
+num_box_rows = length(row_vect);
+num_box_cols = length(col_vect);
 
-% Determine the row and column position of the residue.
-% The following lines are equivalent to (but faster than):
-% [r, c] = ind2sub([height, width], residue_locs(k));
-residue_box_rows_local = rem(idx - 1, height) + 1;
-residue_box_cols_local = (idx - residue_box_rows_local) / height + 1;
+% Vector to hold the indices of the residues in the box.
+res_inds = zeros(NUM_RESIDUES, 1);
 
-% Row and col of anchor position
-r = POS(1);
-c = POS(2);
+% Start a counter.
+res_cnt = 1;
 
-% Centroid
-xc = (width  +  1) / 2 - 0.5 * (1 - mod(width,  2));
-yc = (height + 1) / 2 - 0.5 * (1 - mod(height, 2));
+% Loop over all the pixels in the box.
+for box_row = 1 : num_box_rows
+    for box_col = 1 : num_box_cols
 
-% Global position
-residue_box_rows = residue_box_rows_local - yc + r;
-residue_box_cols = residue_box_cols_local - xc + c;
+        % Big-array index of box pixel.
+        box_ind = row_vect(box_row) + (col_vect(box_col) - 1) * height;
 
-% Need to always put the centered pixel coordinates first...
-
-% Find the position of the original pixel
-I = find(residue_box_rows == r & residue_box_cols == c, 1);
-
-% If more than one residue is detected, 
-% then set the coordinates of the first residue
-% in the list to correspond to the anchor pixel.
-%
-% This if-statement is specified by "max(I(:))" rather
-% than just (if I > 1) because the code won't compile 
-% with the latter statement; the reason for this is 
-% apparently that the compiler doesn't know ahead of time
-% that I will contain exactly one element, even though
-% the call to "find()" above contained an argument specifying
-% to return only a single value. And since "max(I(:))" 
-% can only ever contain one value, the compiler accepts it
-% as a valid conditional statement. 
-% TL;DR, I had to do it this way to get it to compile. 
-if max(I(:)) > 1
-    
-    % Swap the positions of the anchor pixel and the first pixel
-    % in the list of residue locations.
-    residue_box_rows([1, I]) = [residue_box_rows(I), residue_box_rows(1)];
-    residue_box_cols([1, I]) = [residue_box_cols(I), residue_box_cols(1)];
-    
+        % If the pixel corresponds to a residue 
+        % then add its index to the list of residue indices.
+        if abs(RESIDUE_MAT(box_ind)) > 0
+            res_inds(res_cnt) = box_ind;
+            res_cnt = res_cnt + 1;
+        end
+    end
 end
+
+% Find the location of the anchor residue. 
+res_anchor_loc = find(res_inds == ANCHOR_LOC);
+
+% Swap the positions of the anchor pixel and the first pixel
+% in the list of residue locations.
+if max(res_anchor_loc(:)) > 1
+    res_inds([1, res_anchor_loc]) = [res_inds(res_anchor_loc), res_inds(1)];
+end   
+
+% Convert the index to [row, col]
+RESIDUE_BOX_ROWS = rem(res_inds - 1, height) + 1;
+RESIDUE_BOX_COLS = (res_inds - RESIDUE_BOX_ROWS) / height + 1;
 
 end
 
