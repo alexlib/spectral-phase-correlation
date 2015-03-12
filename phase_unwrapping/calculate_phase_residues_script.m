@@ -29,7 +29,13 @@ for k = 1 : 100
 
     % Calculate the branch cuts.
     [branch_cut_matrix, flags_matrix] = ...
-calculate_branch_cuts_goldstein_mex(phase_residue_matrix, 7);
+calculate_branch_cuts_goldstein(phase_residue_matrix, 7);
+
+    % Plot the residue matrix with the branch cuts
+    fprintf('Image pair number: %d\n', k);
+    imagesc(phase_residue_matrix + branch_cut_matrix);
+    axis image;
+    pause;
     
 end
 

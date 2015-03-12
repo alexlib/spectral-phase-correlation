@@ -86,12 +86,15 @@ for k = 1 : num_residues
         % Mark the residue as "active."
         flags_matrix(r, c) = bitset(flags_matrix(r, c), active_residue_bit_position, 1);
         
+        % Set to balanced
+        flags_matrix(r, c) = bitset(flags_matrix(r, c), balanced_charge_bit_position, 1);
+        
         % Calculate the residue charge.
         net_charge = get_charge(RESIDUE_MATRIX(r, c));
         
         % Loop over each box size.
         for box_size =  initial_box_size : 2 : MAX_BOX_SIZE
-            
+                      
             % Determine the extents of the search box.
             [box_rows_01, box_cols_01] = find_box_coordinates([r, c], ...
                 [height, width], box_size);
@@ -128,7 +131,7 @@ for k = 1 : num_residues
                 % Determine the number of box pixels.
                 num_box_pixels = length(box_rows);
             
-            % Loop over the box pixels.
+                % Loop over the box pixels.
                 for p = 1 : num_box_pixels
                     
                     % Get the flags for the box pixel
@@ -200,7 +203,7 @@ for k = 1 : num_residues
                         if net_charge == 0
                             break;
                         end
-                    
+                        
                 end % End looping over box pixels.
                 
                 % Break the loop if the net charge goes to zero.
@@ -219,22 +222,23 @@ for k = 1 : num_residues
         % If the max box size is reached, place a branch cut from the 
         % active pixel to the nearest border.
         if net_charge ~= 0
-            
+              
             % branch_cut_to_edge
             [branch_cut_matrix, flags_matrix] = ...
                 branch_cut_to_edge(branch_cut_matrix, flags_matrix, ...
                 [r, c]);
             
         end
-    end
-            
+    end  
+    
 end
+
+hold off
 
 % Set branch cut pixels to one.
 branch_cut_matrix(branch_cut_matrix > 0) = 1;
 
 end
-
 
 function charge = get_charge(residue)
 % This function calculates the charge of a residue as +/- 1
@@ -287,7 +291,7 @@ anchor_pix_index = find(BOX_COLS == PIXEL_LOC(2) & BOX_ROWS == PIXEL_LOC(1));
 % Don't include the anchor pixel in the box coordinates. 
 BOX_COLS(anchor_pix_index) = [];
 BOX_ROWS(anchor_pix_index) = [];
-       
+        
 end
 
 function [BRANCH_CUT_ROWS, BRANCH_CUT_COLS] = find_branch_cut_pixels(POINTS_01, POINTS_02)
