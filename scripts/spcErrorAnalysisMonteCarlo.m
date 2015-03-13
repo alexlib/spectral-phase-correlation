@@ -92,12 +92,15 @@ switch phase_unwrapping_method
             region_02 = double(imageMatrix2(:, :, k));
             [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                 spatial_window .* region_02, spc_weighting_matrix, ...
-                phase_unwrapping_method, run_compiled);       
+                phase_unwrapping_method, run_compiled);  
         end    
 end
 
 % Save the output data
 save(results_save_path, 'JobFile','TY_EST', 'TX_EST','TY_TRUE', 'TX_TRUE');
+
+% Inform the user of the save location
+fprintf(1, 'Saved results to %s\n', results_save_path);
 
 end
 

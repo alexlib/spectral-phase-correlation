@@ -60,7 +60,7 @@ for n = 1 : nJobs
     setBase = [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
 
     % Base names of results files
-    saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' phase_unwrapping_algorithm '_'];
+    saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' lower(phase_unwrapping_algorithm) '_'];
 
     % Number of digits in the set names
     setDigits = 5;

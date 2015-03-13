@@ -17,10 +17,11 @@ switch upper(UNWRAP_METHOD)
         max_box_size = 7;
         
         % Unwrap the phase plane using the Goldstein method.
-        [phase_plane_unwrapped, branch_cut_matrix] = GoldsteinUnwrap2D(angle(phase_plane_wrapped_complex), max_box_size, COMPILED);
+        [phase_plane_unwrapped, branch_cut_matrix] = GoldsteinUnwrap2D(phase_plane_wrapped_complex, max_box_size, COMPILED);
     
         % Update the weighting matrix
         WEIGHTING_MATRIX(branch_cut_matrix > 0) = 0;
+        WEIGHTING_MATRIX(phase_plane_unwrapped == 0) = 0;
         
     otherwise
         error('Error: invalid phase unwrapping algorithm specified: %s\n', UWNRAP_METHOD);
