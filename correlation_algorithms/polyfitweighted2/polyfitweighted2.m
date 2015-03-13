@@ -82,16 +82,16 @@ end
 
 % Solve least squares problem.
 [Q,R] = qr(V,0);
-ws = warning('off','all'); 
+% ws = warning('off','all'); 
 p = R\(Q'*(w.*z));    % Same as p = V\(w.*z);
-warning(ws);
+% warning(ws);
 if size(R,2) > size(R,1)
-   warning('polyfitweighted2:PolyNotUnique', ...
-       'Polynomial is not unique; degree >= number of data points.')
+%    warning('polyfitweighted2:PolyNotUnique', ...
+%        'Polynomial is not unique; degree >= number of data points.')
 elseif condest(R) > 1.0e10
-        warning('polyfitweighted2:RepeatedPointsOrRescale', ...
-            ['Polynomial is badly conditioned. Remove repeated data points\n' ...
-            '         or try centering and scaling as described in HELP POLYFIT.'])
+%         warning('polyfitweighted2:RepeatedPointsOrRescale', ...
+%             ['Polynomial is badly conditioned. Remove repeated data points\n' ...
+%             '         or try centering and scaling as described in HELP POLYFIT.'])
 end
 %r = z - (V*p)./w;
 p = p.';          % Polynomial coefficients are row vectors by convention.

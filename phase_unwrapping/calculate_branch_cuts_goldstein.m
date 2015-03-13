@@ -233,8 +233,6 @@ for k = 1 : num_residues
     
 end
 
-hold off
-
 % Set branch cut pixels to one.
 branch_cut_matrix(branch_cut_matrix > 0) = 1;
 

@@ -33,7 +33,7 @@ if COMPILED
     residue_matrix = calculate_phase_residues_mex(phase_angle_plane_wrapped);
     
     % Calculate branch cuts
-    BRANCH_CUT_MATRIX = calculate_branch_cuts_goldstein_mex(residue_matrix, MAX_BOX_SIZE); 
+    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein_mex(residue_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase
     PHASE_PLANE_UNWRAPPED = FloodFill_mex(phase_angle_plane_wrapped, BRANCH_CUT_MATRIX);
@@ -44,7 +44,7 @@ else
     residue_matrix = calculate_phase_residues(phase_angle_plane_wrapped);
     
     % Calculate branch cuts
-    BRANCH_CUT_MATRIX = calculate_branch_cuts_goldstein(residue_matrix, MAX_BOX_SIZE); 
+    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein(residue_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase
     PHASE_PLANE_UNWRAPPED = FloodFill(phase_angle_plane_wrapped, BRANCH_CUT_MATRIX);
