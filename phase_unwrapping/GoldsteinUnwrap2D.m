@@ -32,24 +32,39 @@ if COMPILED
     % Calculate residue charges
     residue_matrix = calculate_phase_residues_mex(phase_angle_plane_wrapped);
     
+     % Create the residue flags matrix
+    flags_matrix = make_flags_matrix(residue_matrix);
+    
+    % Remove dipoles
+    flags_matrix = remove_dipoles_mex(flags_matrix);
+    
     % Calculate branch cuts
-    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein_mex(residue_matrix, MAX_BOX_SIZE)); 
+    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein_mex(...
+        flags_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase
-    PHASE_PLANE_UNWRAPPED = FloodFill_mex(phase_angle_plane_wrapped, BRANCH_CUT_MATRIX);
+    PHASE_PLANE_UNWRAPPED = FloodFill_mex(phase_angle_plane_wrapped,...
+        BRANCH_CUT_MATRIX);
 
 else
     
     % Calculate residue charges
     residue_matrix = calculate_phase_residues(phase_angle_plane_wrapped);
     
+     % Create the residue flags matrix
+    flags_matrix = make_flags_matrix(residue_matrix);
+    
+    % Remove dipoles
+    flags_matrix = remove_dipoles(flags_matrix);
+    
     % Calculate branch cuts
-    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein(residue_matrix, MAX_BOX_SIZE)); 
+    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein_02(...
+        flags_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase
-    PHASE_PLANE_UNWRAPPED = FloodFill(phase_angle_plane_wrapped, BRANCH_CUT_MATRIX);
+    PHASE_PLANE_UNWRAPPED = FloodFill(phase_angle_plane_wrapped,...
+        BRANCH_CUT_MATRIX);
 
-    
 end
 
 end

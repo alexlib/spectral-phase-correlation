@@ -10,12 +10,18 @@ phase_unwrapping_method = MONTE_CARLO_PARAMETERS.PhaseUnwrappingAlgorithm;
 % Job Options
 run_compiled = JobFile.JobOptions.RunCompiled;
 
-% Spatial window parameters
-spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
-spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
+% Parallel processing flag
+parallel_processing = JobFile.JobOptions.ParallelProcessing;
 
-% Spatial RPC diameter
-spatial_rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter; % Spatial image RPC diameter (pixels)
+% Spatial window parameters
+% Spatial window type ('fraction' or 'pixels')
+spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType;
+
+% Spatial image window fraction (y, x)
+spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; 
+
+% Spatial RPC diameter (pixels)
+spatial_rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter;
 
 % Load images
 load(image_file_path);
@@ -27,7 +33,8 @@ load(parameters_file_path);
 [region_height, region_width, number_of_images] = size(imageMatrix1);
 
 % Create the spatial window
-spatial_window = gaussianWindowFilter( [region_height region_width], spatialWindowFraction, spatialWindowType);
+spatial_window = gaussianWindowFilter( [region_height region_width],...
+    spatialWindowFraction, spatialWindowType);
 
 % SPC filter cutoff amplitude
 spc_cutoff_amplitude = 2 / (pi * spatial_rpc_diameter);
@@ -47,14 +54,18 @@ switch phase_unwrapping_method
     case 'SVD'
         
         % Create the row-wise spectral energy filter
-        spectral_weights_rows = spectralEnergyFilter(region_height, 1, spatial_rpc_diameter);
+        spectral_weights_rows = spectralEnergyFilter(region_height, ...
+            1, spatial_rpc_diameter);
         
         % Create the column-wise spectral energy filter
-        spectral_weights_cols = spectralEnergyFilter(region_width, 1, spatial_rpc_diameter);
+        spectral_weights_cols = spectralEnergyFilter(region_width, 1, ...
+            spatial_rpc_diameter);
         
         % Apply the cutoff amplitude to the filters
-        spectral_weights_rows(spectral_weights_rows < spc_cutoff_amplitude) = 0;
-        spectral_weights_cols(spectral_weights_cols < spc_cutoff_amplitude) = 0;
+        spectral_weights_rows(spectral_weights_rows < ...
+            spc_cutoff_amplitude) = 0;
+        spectral_weights_cols(spectral_weights_cols < ...
+            spc_cutoff_amplitude) = 0;
         
         % Perform the correlations
         for k = 1 : number_of_images
@@ -65,8 +76,8 @@ switch phase_unwrapping_method
             % Read the raw images
             region_01 = double(imageMatrix1(:, :, k));
             region_02 = double(imageMatrix2(:, :, k));
-            [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* region_01,...
-                spatial_window .* region_02,...
+            [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
+                region_01, spatial_window .* region_02,...
                 spectral_weights_rows, spectral_weights_cols);       
         end
     
@@ -75,25 +86,48 @@ switch phase_unwrapping_method
         % so create the same filters for all of them.
         
         % Create the 2-D spectral filter (i.e. RPC filter)
-        rpc_spectral_filter = spectralEnergyFilter(region_height, region_width, spatial_rpc_diameter); % Raw image RPC spectral energy filter
+        rpc_spectral_filter = spectralEnergyFilter(region_height, ...
+            region_width, spatial_rpc_diameter); 
 
         % Make the 2-D SPC filter
         spc_weighting_matrix = rpc_spectral_filter;
-        spc_weighting_matrix(spc_weighting_matrix < spc_cutoff_amplitude) = 0;
+        spc_weighting_matrix(spc_weighting_matrix < ...
+            spc_cutoff_amplitude) = 0;
         
-        % Do the correlations
-        % Perform the correlations
-        for k = 1 : number_of_images;
+        % Choose between parallel and single-core processing
+        if parallel_processing
             
-            fprintf('%d of %d\n', k, number_of_images);
-            
-            % Read the raw images
-            region_01 = double(imageMatrix1(:, :, k));
-            region_02 = double(imageMatrix2(:, :, k));
-            [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
-                spatial_window .* region_02, spc_weighting_matrix, ...
-                phase_unwrapping_method, run_compiled);  
-        end    
+            % Perform the correlations using parallel processing
+            parfor k = 1 : number_of_images;
+
+                fprintf('%d of %d\n', k, number_of_images);
+
+                % Read the raw images
+                region_01 = double(imageMatrix1(:, :, k));
+                region_02 = double(imageMatrix2(:, :, k));
+                [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
+                    spatial_window .* region_02, spc_weighting_matrix, ...
+                    phase_unwrapping_method, run_compiled);  
+            end  
+        
+        else
+        
+            % Perform the correlations using single-core processing
+            for k = 474 : number_of_images;
+
+                fprintf('%d of %d\n', k, number_of_images);
+
+                % Read the raw images
+                region_01 = double(imageMatrix1(:, :, k));
+                region_02 = double(imageMatrix2(:, :, k));
+                [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
+                    spatial_window .* region_02, spc_weighting_matrix, ...
+                    phase_unwrapping_method, run_compiled);  
+            end  
+        
+        end
+        
+        
 end
 
 % Save the output data

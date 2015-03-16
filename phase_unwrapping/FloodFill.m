@@ -139,9 +139,19 @@ while sum(sum(adjoin(2:height-1,2:width-1)))~=0              %Loop until there a
                 end
             end
         end
+        
         %figure; imagesc(adjoin), colormap(gray), axis square, axis off, title('Adjoining pixels');
         %figure; imagesc(IM_unwrapped), colormap(gray), axis square, axis off, title('Pixels unwrapped');
     end
+    
+    % Print the number of iterations?
+    fprintf('Number of iterations: %d\n', count_limit);
+    
+    % 
+%     if count_limit >= 100
+%         break
+%     end
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

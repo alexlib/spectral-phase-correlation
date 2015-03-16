@@ -1,6 +1,6 @@
 function JOBLIST = spcJobList_mc()
 
-DefaultJob.JobOptions.NumberOfProcessors = 8;
+DefaultJob.JobOptions.ParallelProcessing = 0;
 DefaultJob.JobOptions.NumberOfDigits = 6;
 DefaultJob.JobOptions.BooleanGenerateParticleImages = false;
 DefaultJob.JobOptions.BooleanRunAnalysis = true;
@@ -8,7 +8,7 @@ DefaultJob.JobOptions.FlipYTranslation = false;
 DefaultJob.JobOptions.SkipExistingSets = false;
 DefaultJob.JobOptions.RepositoryPathIsAbsolute = 1;
 DefaultJob.JobOptions.DoAffineTransform = 0;
-DefaultJob.JobOptions.RunCompiled = 1;
+DefaultJob.JobOptions.RunCompiled = 0;
 
 DefaultJob.ImageType = 'synthetic';
 DefaultJob.SetType = 'mc';
@@ -24,7 +24,7 @@ DefaultJob.Parameters.RepositoryPath =  '/Users/matthewgiarra/Dropbox/School/VT/
 DefaultJob.Parameters.Processing.SpatialWindowFraction = [0.5 0.5];
 DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
 DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
-DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'HERRAEZ';
+DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
 % DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 
 % This is the mean of the additive gaussian white noise
@@ -44,7 +44,6 @@ SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
 SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
 JOBLIST(1) = SegmentItem;
-
 
 
 end

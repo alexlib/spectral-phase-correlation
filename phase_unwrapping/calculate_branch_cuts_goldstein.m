@@ -1,10 +1,4 @@
-function [branch_cut_matrix, flags_matrix] = calculate_branch_cuts_goldstein(RESIDUE_MATRIX, MAX_BOX_SIZE);
-
-% Determine matrix height and width
-[height, width] = size(RESIDUE_MATRIX);
-
-% Create a branch cut matrix
-branch_cut_matrix = zeros(height, width);
+function [branch_cut_matrix, FLAGS_MATRIX] = calculate_branch_cuts_goldstein(FLAGS_MATRIX, MAX_BOX_SIZE);
 
 % Create a matrix containing the residue flags
 % This matrix contains [height, width] 8-bit values
@@ -53,16 +47,15 @@ been_searched_bit_position = 8;
 % Initial box size
 initial_box_size = 3;
 
-% This should really be done in the object-oriented sense
-% where all these flags are attributes of a residue object.
-% But when I tested this, creating arrays of phase objects
-% was extremely slow. Perhaps only the creation is slow but
-% after that the array could be passed around efficiently?
-% It's only needs to be created once.
-flags_matrix = make_flags_matrix(RESIDUE_MATRIX);
+% Determine matrix height and width
+[height, width] = size(FLAGS_MATRIX);
 
+% Add any existing branch cuts to the branch cut matrix
+branch_cut_matrix = bitget(FLAGS_MATRIX, branch_cut_bit_position);
+ 
 % Determine the locations of the residues
-residue_locs = find(abs(RESIDUE_MATRIX) > 0);
+residue_locs = find(bitget(FLAGS_MATRIX, positive_residue_bit_position) ...
+    | bitget(FLAGS_MATRIX, negative_residue_bit_position));
 
 % Number of residues identified
 num_residues = length(residue_locs);
@@ -77,21 +70,25 @@ for k = 1 : num_residues
     c = (residue_locs(k) - r) / height + 1;
     
     % Check if the pixel is already balanced.
-    isBalanced = bitget(flags_matrix(r, c), balanced_charge_bit_position);
+    isBalanced = bitget(FLAGS_MATRIX(r, c), balanced_charge_bit_position);
 
     % Ignore the pixel if it's already balanced.
     % or conversely, only continue if the charge isn't already balanced.
     if ~isBalanced
     
         % Mark the residue as "active."
-        flags_matrix(r, c) = bitset(flags_matrix(r, c), active_residue_bit_position, 1);
+        FLAGS_MATRIX(r, c) = bitset(FLAGS_MATRIX(r, c), active_residue_bit_position, 1);
         
         % Set to balanced
-        flags_matrix(r, c) = bitset(flags_matrix(r, c), balanced_charge_bit_position, 1);
+        FLAGS_MATRIX(r, c) = bitset(FLAGS_MATRIX(r, c), balanced_charge_bit_position, 1);
         
         % Calculate the residue charge.
-        net_charge = get_charge(RESIDUE_MATRIX(r, c));
-        
+        if bitget(FLAGS_MATRIX(r, c), positive_residue_bit_position)
+            net_charge =  1;
+        else
+            net_charge = -1;
+        end
+
         % Loop over each box size.
         for box_size =  initial_box_size : 2 : MAX_BOX_SIZE
                       
@@ -101,12 +98,12 @@ for k = 1 : num_residues
             
             % Count the number of residues in the box
             num_residues_in_box = count_residues( ...
-            RESIDUE_MATRIX(min(box_rows_01) : max(box_rows_01), ...
+            FLAGS_MATRIX(min(box_rows_01) : max(box_rows_01), ...
                          min(box_cols_01) : max(box_cols_01)));
              
              % Find the coordinates of all the residues in the box.
              [residue_box_rows, residue_box_cols] = ...
-                 find_residue_positions(RESIDUE_MATRIX, ...
+                 find_residue_positions(FLAGS_MATRIX, ...
                  box_rows_01, box_cols_01, residue_locs(k), ...
                     num_residues_in_box);
         
@@ -135,15 +132,15 @@ for k = 1 : num_residues
                 for p = 1 : num_box_pixels
                     
                     % Get the flags for the box pixel
-                    flag_vals = flags_matrix(box_rows(p), box_cols(p));
+                    flag_vals = FLAGS_MATRIX(box_rows(p), box_cols(p));
                     
                         % Check if box pixel is a border pixel.
                         if bitget(flag_vals, image_border_bit_position);
 
                             % Set the residue to balanced
                             % if the box contains a border pixel.
-                            flags_matrix(row_anchor, col_anchor) = ...
-                                bitset(flags_matrix(row_anchor, col_anchor), ...
+                            FLAGS_MATRIX(row_anchor, col_anchor) = ...
+                                bitset(FLAGS_MATRIX(row_anchor, col_anchor), ...
                                 balanced_charge_bit_position, 1);
 
                             % Set the net charge in the box to zero
@@ -152,9 +149,9 @@ for k = 1 : num_residues
 
                             % Place a branch cut between the active pixel
                             % and the box (border) pixel
-                            [branch_cut_matrix, flags_matrix] = ...
+                            [branch_cut_matrix, FLAGS_MATRIX] = ...
                                 place_branch_cut(branch_cut_matrix, ...
-                                flags_matrix, [box_rows(p), box_cols(p)],...
+                                FLAGS_MATRIX, [box_rows(p), box_cols(p)],...
                                 [row_anchor, col_anchor]); 
 
                         % Check if the box pixel is both a residue and not already active   
@@ -163,7 +160,7 @@ for k = 1 : num_residues
 
                             % Check if the pixel is balanced.
                             isBalanced = ...
-                                bitget(flags_matrix(box_rows(p), box_cols(p)), ...
+                                bitget(FLAGS_MATRIX(box_rows(p), box_cols(p)), ...
                                 balanced_charge_bit_position);
 
                             % If the pixel is not already balanced, add its
@@ -172,27 +169,27 @@ for k = 1 : num_residues
 
                                 % Add the pixel's charge to the net charge.
                                 net_charge = net_charge + ...
-                                    get_charge(RESIDUE_MATRIX( ...
+                                    get_flags_charge(FLAGS_MATRIX( ...
                                     box_rows(p), box_cols(p)));
-
+                               
                                 % Set the pixel to balanced.
-                                flags_matrix(box_rows(p), box_cols(p)) = ...
-                                    bitset(flags_matrix(box_rows(p), ...
+                                FLAGS_MATRIX(box_rows(p), box_cols(p)) = ...
+                                    bitset(FLAGS_MATRIX(box_rows(p), ...
                                     box_cols(p)), ...
                                     balanced_charge_bit_position, 1); 
                             end % End checking for balanced charge.
 
                             % Set the pixel to active.
-                            flags_matrix(box_rows(p), box_cols(p)) = ...
-                               bitset(flags_matrix(box_rows(p), ...
+                            FLAGS_MATRIX(box_rows(p), box_cols(p)) = ...
+                               bitset(FLAGS_MATRIX(box_rows(p), ...
                                box_cols(p)), ...
                                 active_residue_bit_position, 1);
 
                             % Place a branch cut between that pixel 
                             % and the residue at which the box is centered.
-                            [branch_cut_matrix, flags_matrix] = ...
+                            [branch_cut_matrix, FLAGS_MATRIX] = ...
                                 place_branch_cut(branch_cut_matrix, ...
-                                flags_matrix, ...
+                                FLAGS_MATRIX, ...
                                 [row_anchor, col_anchor],...
                                 [box_rows(p), box_cols(p)]);
 
@@ -224,8 +221,8 @@ for k = 1 : num_residues
         if net_charge ~= 0
               
             % branch_cut_to_edge
-            [branch_cut_matrix, flags_matrix] = ...
-                branch_cut_to_edge(branch_cut_matrix, flags_matrix, ...
+            [branch_cut_matrix, FLAGS_MATRIX] = ...
+                branch_cut_to_edge(branch_cut_matrix, FLAGS_MATRIX, ...
                 [r, c]);
             
         end
@@ -236,11 +233,6 @@ end
 % Set branch cut pixels to one.
 branch_cut_matrix(branch_cut_matrix > 0) = 1;
 
-end
-
-function charge = get_charge(residue)
-% This function calculates the charge of a residue as +/- 1
-    charge = 1 - (2 * (residue < 0));
 end
 
 function [BOX_ROWS, BOX_COLS] = find_box_coordinates(PIXEL_LOC, DIMS, BOX_SIZE);
@@ -358,69 +350,16 @@ BRANCH_CUT_MATRIX(branch_cut_indices) = 1;
 end
 
 
-function FLAGS_MATRIX = make_flags_matrix(RESIDUE_MATRIX)
-
-% Height and width of the matrix
-[height, width] = size(RESIDUE_MATRIX);
-
-% Initialize the eight-bit flags matrix as zeros.
-FLAGS_MATRIX = zeros(height, width, 'uint8');
-
-% Image border flag bit position and byte-value-if-true
-image_border_bit_position = 4;
-
-% Positive residue bit position
-positive_residue_bit_position = 1;
-
-% Negative residue bit position
-negative_residue_bit_position = 2;
-
-% Set the border pixel flags for the top edge.
-FLAGS_MATRIX(1, :) = bitset(FLAGS_MATRIX(1, :), ...
-    image_border_bit_position, 1);
-
-% Set the border pixel flags for the bottom edge.
-FLAGS_MATRIX(height, :) = bitset(FLAGS_MATRIX(1, :), ...
-    image_border_bit_position, 1);
-
-% Set the border pixel flags for the left edge.
-FLAGS_MATRIX(:, 1) = bitset(FLAGS_MATRIX(1, :), ...
-    image_border_bit_position, 1);
-
-% Set the border pixel flags for the right edge.
-FLAGS_MATRIX(:, width) = bitset(FLAGS_MATRIX(1, :), ...
-    image_border_bit_position, 1);
-
-% Loop over all the pixels in the residue matrix
-% Set the positive residue flags 
-for k = 1 : length(RESIDUE_MATRIX(:))
-    if RESIDUE_MATRIX(k) > 0
-        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), positive_residue_bit_position, 1);
-    elseif RESIDUE_MATRIX(k) < 0
-        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), negative_residue_bit_position, 1);
-    end 
-end
-
-
-end
-
-
-function NUM_RESIDUES = count_residues(RESIDUE_MATRIX)
-% This function counts the total number of residues contained
-% in a matrix of residue flags, and also returns the net charge in the
-% region.
-
-NUM_RESIDUES = sum(abs(RESIDUE_MATRIX(:)) > 0);
-
-end
-
-
 % Determine the positions of all of the residues in the box.
 function [RESIDUE_BOX_ROWS, RESIDUE_BOX_COLS] = find_residue_positions( ...
-    RESIDUE_MAT, ROWS, COLS, ANCHOR_LOC, NUM_RESIDUES);
+    FLAGS_MATRIX, ROWS, COLS, ANCHOR_LOC, NUM_RESIDUES);
 
 % Dimensions of the larger matrix
-height = size(RESIDUE_MAT, 1);
+height = size(FLAGS_MATRIX, 1);
+
+% Residue flags bit positions
+positive_residue_bit_position = 1;
+negative_residue_bit_position = 2;
 
 % Make vectors out of the row and column positions.
 row_vect = min(ROWS(:)) : max(ROWS(:));
@@ -443,10 +382,13 @@ for box_row = 1 : num_box_rows
 
         % If the pixel corresponds to a residue 
         % then add its index to the list of residue indices.
-        if abs(RESIDUE_MAT(box_ind)) > 0
+        if sum(bitget(FLAGS_MATRIX(box_ind), ...
+                [positive_residue_bit_position,  ...
+                negative_residue_bit_position])) > 0; 
             res_inds(res_cnt) = box_ind;
             res_cnt = res_cnt + 1;
         end
+        
     end
 end
 
