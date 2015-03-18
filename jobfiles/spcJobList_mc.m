@@ -51,6 +51,15 @@ JOBLIST(1) = SegmentItem;
 % JOB 1
 SegmentItem = DefaultJob;
 SegmentItem.CaseName = '2015-03-13_spc_test';
+SegmentItem.CorrelationType = 'SCC';
+SegmentItem.Parameters.RegionHeight = 64;
+SegmentItem.Parameters.RegionWidth = 64;
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
+JOBLIST(end + 1) = SegmentItem;
+
+% JOB 1
+SegmentItem = DefaultJob;
+SegmentItem.CaseName = '2015-03-13_spc_test';
 SegmentItem.CorrelationType = 'SPC';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;

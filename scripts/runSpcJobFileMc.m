@@ -60,8 +60,12 @@ for n = 1 : nJobs
     setBase = [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
 
     % Base names of results files
-    saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' lower(phase_unwrapping_algorithm) '_'];
-
+    if ~isempty(regexpi(correlation_type, 'spc'))
+        saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' lower(phase_unwrapping_algorithm) '_'];
+    else
+        saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
+    end
+    
     % Number of digits in the set names
     setDigits = 5;
     % Numbering format tag for image sets
