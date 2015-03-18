@@ -6,7 +6,7 @@ phase_plane_wrapped_complex = fftshift(phaseCorrelation(...
     REGION_01, REGION_02));
 
 % Filter plane
-phase_angle_plane_wrapped = phase_mean_filter(...
+phase_plane_filtered_complex = phase_mean_filter(...
     phase_plane_wrapped_complex, [5, 5]);
 
 % Unwrap using the chosen unwrapping method
@@ -15,7 +15,7 @@ switch upper(UNWRAP_METHOD)
     case 'HERRAEZ'
         
         % Unwrap the phase plane using the Herraez method.
-        phase_plane_unwrapped = unwrap_phase_herraez(phase_angle_plane_wrapped);
+        phase_plane_unwrapped = unwrap_phase_herraez(phase_plane_filtered_complex);
     
     case 'GOLDSTEIN'
         
@@ -24,7 +24,7 @@ switch upper(UNWRAP_METHOD)
         
         % Unwrap the phase plane using the Goldstein method.
         [phase_plane_unwrapped, branch_cut_matrix] = ...
-            GoldsteinUnwrap2D(phase_angle_plane_wrapped, ...
+            GoldsteinUnwrap2D(phase_plane_filtered_complex, ...
             max_box_size, COMPILED);
     
         % Update the weighting matrix
