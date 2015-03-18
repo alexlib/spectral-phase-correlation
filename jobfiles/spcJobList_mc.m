@@ -18,9 +18,13 @@ DefaultJob.Parameters.RegionHeight = 64;
 DefaultJob.Parameters.RegionWidth = 64;
 DefaultJob.Parameters.Sets.Start = 1;
 DefaultJob.Parameters.Sets.End = 1;
-DefaultJob.Parameters.Sets.ImagesPerSet = 1000;
-DefaultJob.Parameters.RepositoryPath =  '/Users/matthewgiarra/Dropbox/School/VT/Research/SPC';
+DefaultJob.Parameters.Sets.ImagesPerSet = 10000;
 
+DefaultJob.Parameters.Images.Start = 5635;
+DefaultJob.Parameters.Images.End = 5635;
+DefaultJob.Parameters.Images.Skip = 1;
+
+DefaultJob.Parameters.RepositoryPath =  '~/Desktop/spc_test';
 DefaultJob.Parameters.Processing.SpatialWindowFraction = [0.5 0.5];
 DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
 DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
@@ -37,7 +41,7 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 
 % JOB 1
 SegmentItem = DefaultJob;
-SegmentItem.CaseName = '2015-02-27_translation_only';
+SegmentItem.CaseName = '2015-03-13_spc_test';
 SegmentItem.CorrelationType = 'spc';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;

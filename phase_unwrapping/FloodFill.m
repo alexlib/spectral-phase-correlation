@@ -4,15 +4,22 @@
 % Last modified on 13/10/2004
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [IM_unwrapped, rowref, colref] = FloodFill(IM_phase, branch_cuts)
+function [IM_unwrapped, rowref, colref] = FloodFill(IM_phase, BRANCH_CUT_MATRIX)
 
 [height, width]=size(IM_phase);
 % figure; imagesc(immultiply(IM_phase, ~branch_cuts)), colormap(gray), axis square, axis off, title('Phase image');
 % uiwait(msgbox('Select a known true phase reference point','Phase reference point','modal'));
 % [xref,yref] = ginput(1); 
 
+% Use the matlab floodfill algorithm to detect isolated
+% portions of the image.
+isolated_regions = imfill(BRANCH_CUT_MATRIX) - BRANCH_CUT_MATRIX;
+
 % Determine the positions of the non-branch cut pixels
-non_branch_cuts = find(branch_cuts < 1);
+% that don't lie within isolated regions
+non_branch_cuts = find(BRANCH_CUT_MATRIX < 1 & isolated_regions < 1);
+% non_branch_cuts = find(BRANCH_CUT_MATRIX < 1);
+
 
 % Determine the row and column indices of these pixels
 % [y_ind, x_ind] = ind2sub([height, width], non_branch_cuts);
@@ -31,6 +38,8 @@ r = sqrt((x_ind - xc).^2 + (y_ind - yc).^2);
 % center of the spectrum.
 rowref = y_ind(r == min(r));
 colref = x_ind(r == min(r));
+
+% Check if this 
 
 % Flag specifying that the starting point corresponds
 % to a branch cut
@@ -69,71 +78,71 @@ while sum(sum(adjoin(2:height-1,2:width-1)))~=0              %Loop until there a
             c_active=c_adjoin(i);
             if r_active <= height-1 && r_active>=2 && c_active<=width-1 && c_active>=2                    %Ignore pixels near the border
                 %First search below for an adjoining unwrapped phase pixel
-                if branch_cuts(r_active+1, c_active)==0 && unwrapped_binary(r_active+1, c_active)==1
+                if BRANCH_CUT_MATRIX(r_active+1, c_active)==0 && unwrapped_binary(r_active+1, c_active)==1
                     phase_ref=IM_unwrapped(r_active+1, c_active);                                   %Obtain the reference unwrapped phase
                     p=unwrap([phase_ref IM_phase(r_active, c_active)]);                             %Unwrap the active pixel
                     IM_unwrapped(r_active, c_active)=p(2);
                     unwrapped_binary(r_active, c_active)=1;                                         %Mark the pixel as unwrapped
                     adjoin(r_active, c_active)=0;                                                   %Remove it from the list of adjoining pixels
-                    if r_active-1>=1 && unwrapped_binary(r_active-1, c_active)==0 && branch_cuts(r_active-1, c_active)==0
+                    if r_active-1>=1 && unwrapped_binary(r_active-1, c_active)==0 && BRANCH_CUT_MATRIX(r_active-1, c_active)==0
                         adjoin(r_active-1, c_active)=1;
                     end
-                    if c_active-1>=1 && unwrapped_binary(r_active, c_active-1)==0 && branch_cuts(r_active, c_active-1)==0
+                    if c_active-1>=1 && unwrapped_binary(r_active, c_active-1)==0 && BRANCH_CUT_MATRIX(r_active, c_active-1)==0
                         adjoin(r_active, c_active-1)=1;
                     end
-                    if c_active+1<=width && unwrapped_binary(r_active, c_active+1)==0 && branch_cuts(r_active, c_active+1)==0
+                    if c_active+1<=width && unwrapped_binary(r_active, c_active+1)==0 && BRANCH_CUT_MATRIX(r_active, c_active+1)==0
                         adjoin(r_active, c_active+1)=1;
                     end
                 end
                 %Then search above
-                if branch_cuts(r_active-1, c_active)==0 && unwrapped_binary(r_active-1, c_active)==1
+                if BRANCH_CUT_MATRIX(r_active-1, c_active)==0 && unwrapped_binary(r_active-1, c_active)==1
                     phase_ref=IM_unwrapped(r_active-1, c_active);                                   %Obtain the reference unwrapped phase
                     p=unwrap([phase_ref IM_phase(r_active, c_active)]);                             %Unwrap the active pixel
                     IM_unwrapped(r_active, c_active)=p(2);
                     unwrapped_binary(r_active, c_active)=1;                                         %Mark the pixel as unwrapped
                     adjoin(r_active, c_active)=0;                                                   %Remove it from the list of adjoining pixels
                     %Update the new adjoining pixels:
-                    if r_active+1<=height && unwrapped_binary(r_active+1, c_active)==0 && branch_cuts(r_active+1, c_active)==0
+                    if r_active+1<=height && unwrapped_binary(r_active+1, c_active)==0 && BRANCH_CUT_MATRIX(r_active+1, c_active)==0
                         adjoin(r_active+1, c_active)=1;
                     end
-                    if c_active-1>=1 && unwrapped_binary(r_active, c_active-1)==0 && branch_cuts(r_active, c_active-1)==0
+                    if c_active-1>=1 && unwrapped_binary(r_active, c_active-1)==0 && BRANCH_CUT_MATRIX(r_active, c_active-1)==0
                         adjoin(r_active, c_active-1)=1;
                     end
-                    if c_active+1<=width && unwrapped_binary(r_active, c_active+1)==0 && branch_cuts(r_active, c_active+1)==0
+                    if c_active+1<=width && unwrapped_binary(r_active, c_active+1)==0 && BRANCH_CUT_MATRIX(r_active, c_active+1)==0
                         adjoin(r_active, c_active+1)=1;
                     end
                 end
                 %Then search on the right
-                if branch_cuts(r_active, c_active+1)==0 && unwrapped_binary(r_active, c_active+1)==1
+                if BRANCH_CUT_MATRIX(r_active, c_active+1)==0 && unwrapped_binary(r_active, c_active+1)==1
                     phase_ref=IM_unwrapped(r_active, c_active+1);                                   %Obtain the reference unwrapped phase
                     p=unwrap([phase_ref IM_phase(r_active, c_active)]);                             %Unwrap the active pixel
                     IM_unwrapped(r_active, c_active)=p(2);
                     unwrapped_binary(r_active, c_active)=1;                                         %Mark the pixel as unwrapped
                     adjoin(r_active, c_active)=0;                                                   %Remove it from the list of adjoining pixels
-                    if r_active+1<=height && unwrapped_binary(r_active+1, c_active)==0 && branch_cuts(r_active+1, c_active)==0
+                    if r_active+1<=height && unwrapped_binary(r_active+1, c_active)==0 && BRANCH_CUT_MATRIX(r_active+1, c_active)==0
                         adjoin(r_active+1, c_active)=1;
                     end
-                    if c_active-1>=1 && unwrapped_binary(r_active, c_active-1)==0 && branch_cuts(r_active, c_active-1)==0
+                    if c_active-1>=1 && unwrapped_binary(r_active, c_active-1)==0 && BRANCH_CUT_MATRIX(r_active, c_active-1)==0
                         adjoin(r_active, c_active-1)=1;
                     end
-                    if r_active-1>=1 && unwrapped_binary(r_active-1, c_active)==0 && branch_cuts(r_active-1, c_active)==0
+                    if r_active-1>=1 && unwrapped_binary(r_active-1, c_active)==0 && BRANCH_CUT_MATRIX(r_active-1, c_active)==0
                         adjoin(r_active-1, c_active)=1;
                     end
                 end
                 %Finally search on the left
-                if branch_cuts(r_active, c_active-1)==0 && unwrapped_binary(r_active, c_active-1)==1
+                if BRANCH_CUT_MATRIX(r_active, c_active-1)==0 && unwrapped_binary(r_active, c_active-1)==1
                     phase_ref=IM_unwrapped(r_active, c_active-1);                                   %Obtain the reference unwrapped phase
                     p=unwrap([phase_ref IM_phase(r_active, c_active)]);                             %Unwrap the active pixel
                     IM_unwrapped(r_active, c_active)=p(2);
                     unwrapped_binary(r_active, c_active)=1;                                         %Mark the pixel as unwrapped
                     adjoin(r_active, c_active)=0;                                                   %Remove it from the list of adjoining pixels
-                    if r_active+1<=height && unwrapped_binary(r_active+1, c_active)==0 && branch_cuts(r_active+1, c_active)==0
+                    if r_active+1<=height && unwrapped_binary(r_active+1, c_active)==0 && BRANCH_CUT_MATRIX(r_active+1, c_active)==0
                         adjoin(r_active+1, c_active)=1;
                     end
-                    if c_active+1<=width && unwrapped_binary(r_active, c_active+1)==0 && branch_cuts(r_active, c_active+1)==0
+                    if c_active+1<=width && unwrapped_binary(r_active, c_active+1)==0 && BRANCH_CUT_MATRIX(r_active, c_active+1)==0
                         adjoin(r_active, c_active+1)=1;
                     end
-                    if r_active-1>=1 && unwrapped_binary(r_active-1, c_active)==0 && branch_cuts(r_active-1, c_active)==0
+                    if r_active-1>=1 && unwrapped_binary(r_active-1, c_active)==0 && BRANCH_CUT_MATRIX(r_active-1, c_active)==0
                         adjoin(r_active-1, c_active)=1;
                     end
                 end
@@ -145,12 +154,12 @@ while sum(sum(adjoin(2:height-1,2:width-1)))~=0              %Loop until there a
     end
     
     % Print the number of iterations?
-    fprintf('Number of iterations: %d\n', count_limit);
+%     fprintf('Number of iterations: %d\n', count_limit);
     
     % 
-%     if count_limit >= 100
-%         break
-%     end
+    if count_limit >= 100
+        break
+    end
     
 end
 
@@ -164,8 +173,8 @@ adjoin=zeros(height, width);
 %Re-load the adjoining pixel matrix with the branch cut values:
 for i=2:height-1
     for j=2:width-1
-       if branch_cuts(i,j)==1 && ...                         %Identify which branch cut pixel borders an unwrapped pixel
-          ( (branch_cuts(i+1,j)==0 || branch_cuts(i-1,j)==0 || branch_cuts(i,j-1)==0 || branch_cuts(i,j+1)==0) ) 
+       if BRANCH_CUT_MATRIX(i,j)==1 && ...                         %Identify which branch cut pixel borders an unwrapped pixel
+          ( (BRANCH_CUT_MATRIX(i+1,j)==0 || BRANCH_CUT_MATRIX(i-1,j)==0 || BRANCH_CUT_MATRIX(i,j-1)==0 || BRANCH_CUT_MATRIX(i,j+1)==0) ) 
          adjoin(i,j)=1;
        end
     end

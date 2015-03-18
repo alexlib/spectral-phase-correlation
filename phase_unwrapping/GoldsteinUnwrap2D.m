@@ -17,7 +17,6 @@ function [PHASE_PLANE_UNWRAPPED, BRANCH_CUT_MATRIX] = GoldsteinUnwrap2D(PHASE_PL
 % Posted by Bruce Spottiswoode on 22 December 2008
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 % Default to not run compiled codes
 if nargin < 3
     COMPILED = 0;
@@ -33,7 +32,7 @@ if COMPILED
     residue_matrix = calculate_phase_residues_mex(phase_angle_plane_wrapped);
     
      % Create the residue flags matrix
-    flags_matrix = make_flags_matrix(residue_matrix);
+    flags_matrix = make_flags_matrix_mex(residue_matrix);
     
     % Remove dipoles
     flags_matrix = remove_dipoles_mex(flags_matrix);
@@ -58,7 +57,7 @@ else
     flags_matrix = remove_dipoles(flags_matrix);
     
     % Calculate branch cuts
-    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein_02(...
+    BRANCH_CUT_MATRIX = uint8(calculate_branch_cuts_goldstein(...
         flags_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase

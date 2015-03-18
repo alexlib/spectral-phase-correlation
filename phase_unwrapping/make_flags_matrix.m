@@ -15,6 +15,9 @@ positive_residue_bit_position = 1;
 % Negative residue bit position
 negative_residue_bit_position = 2;
 
+% Branch cut bit position
+branch_cut_bit_position = 3;
+
 % Set the border pixel flags for the top edge.
 FLAGS_MATRIX(1, :) = bitset(FLAGS_MATRIX(1, :), ...
     image_border_bit_position, 1);
@@ -36,8 +39,10 @@ FLAGS_MATRIX(:, width) = bitset(FLAGS_MATRIX(1, :), ...
 for k = 1 : length(RESIDUE_MATRIX(:))
     if RESIDUE_MATRIX(k) > 0
         FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), positive_residue_bit_position, 1);
+        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), branch_cut_bit_position, 1);
     elseif RESIDUE_MATRIX(k) < 0
         FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), negative_residue_bit_position, 1);
+        FLAGS_MATRIX(k) = bitset(FLAGS_MATRIX(k), branch_cut_bit_position, 1);
     end 
 end
 

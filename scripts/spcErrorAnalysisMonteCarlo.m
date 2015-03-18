@@ -7,6 +7,13 @@ image_file_path = MONTE_CARLO_PARAMETERS.Image_File_Path;
 parameters_file_path = MONTE_CARLO_PARAMETERS.Image_Parameters_path;
 phase_unwrapping_method = MONTE_CARLO_PARAMETERS.PhaseUnwrappingAlgorithm;
 
+% Start and end image numbers
+start_image = JobFile.Parameters.Images.Start;
+end_image = JobFile.Parameters.Images.End;
+
+% Number of images to skip between successive correlations.
+skip_image = JobFile.Parameters.Images.Skip;
+
 % Job Options
 run_compiled = JobFile.JobOptions.RunCompiled;
 
@@ -29,8 +36,13 @@ load(image_file_path);
 % Load parameters to read true solutions so they can be saved to file.
 load(parameters_file_path);
 
+% Image numbers
+image_numbers = start_image : skip_image : end_image;
+
+
 % Number of images
-[region_height, region_width, number_of_images] = size(imageMatrix1);
+[region_height, region_width, number_of_images] = size(imageMatrix1(:, :, image_numbers));
+
 
 % Create the spatial window
 spatial_window = gaussianWindowFilter( [region_height region_width],...
@@ -44,9 +56,8 @@ TY_EST = zeros(number_of_images, 1);
 TX_EST = zeros(number_of_images, 1);
 
 % Read the true translations, which will be saved to file.
-TY_TRUE = Parameters.TranslationY;
-TX_TRUE = Parameters.TranslationX;
-
+TY_TRUE = Parameters.TranslationY(image_numbers);
+TX_TRUE = Parameters.TranslationX(image_numbers);
 
 % Create the spectral filters
 switch phase_unwrapping_method
@@ -68,18 +79,33 @@ switch phase_unwrapping_method
             spc_cutoff_amplitude) = 0;
         
         % Perform the correlations
-        for k = 1 : number_of_images
-            
-            % Print the iteration number
-            fprintf('On region %d of %d\n', k, number_of_images);
-            
-            % Read the raw images
-            region_01 = double(imageMatrix1(:, :, k));
-            region_02 = double(imageMatrix2(:, :, k));
-            [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
+        if parallel_processing
+            parfor k = 1 : number_of_images
+                % Print the iteration number
+                fprintf('On region %d of %d\n', k, number_of_images);
+
+                % Read the raw images
+                region_01 = double(imageMatrix1(:, :, image_numbers(k)));
+                region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+                [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
                 region_01, spatial_window .* region_02,...
                 spectral_weights_rows, spectral_weights_cols);       
+            end
+        
+        else
+            for k = 1 : number_of_images
+                % Print the iteration number
+                fprintf('On region %d of %d\n', k, number_of_images);
+
+                % Read the raw images
+                region_01 = double(imageMatrix1(:, :, image_numbers(k)));
+                region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+                [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
+                region_01, spatial_window .* region_02,...
+                spectral_weights_rows, spectral_weights_cols);  
+            end
         end
+
     
     otherwise
         % All the other phase unwrapping algorithms are 2D,
@@ -103,8 +129,8 @@ switch phase_unwrapping_method
                 fprintf('%d of %d\n', k, number_of_images);
 
                 % Read the raw images
-                region_01 = double(imageMatrix1(:, :, k));
-                region_02 = double(imageMatrix2(:, :, k));
+                region_01 = double(imageMatrix1(:, :, image_numbers(k)));
+                region_02 = double(imageMatrix2(:, :, image_numbers(k)));
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
                     phase_unwrapping_method, run_compiled);  
@@ -113,20 +139,19 @@ switch phase_unwrapping_method
         else
         
             % Perform the correlations using single-core processing
-            for k = 474 : number_of_images;
+            for k = 1 : number_of_images;
 
                 fprintf('%d of %d\n', k, number_of_images);
 
                 % Read the raw images
-                region_01 = double(imageMatrix1(:, :, k));
-                region_02 = double(imageMatrix2(:, :, k));
+                region_01 = double(imageMatrix1(:, :, image_numbers(k)));
+                region_02 = double(imageMatrix2(:, :, image_numbers(k)));
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
                     phase_unwrapping_method, run_compiled);  
             end  
         
         end
-        
         
 end
 
