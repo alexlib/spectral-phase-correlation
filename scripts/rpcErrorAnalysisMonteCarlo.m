@@ -36,7 +36,7 @@ load(parameters_file_path);
 image_numbers = start_image : skip_image : end_image;
 
 % Number of images
-[region_height, region_width, number_of_images] = size(imageMatrix1(image_numbers));
+[region_height, region_width, number_of_images] = size(imageMatrix1(:, :, image_numbers));
 
 % Create the spatial window
 spatial_window = gaussianWindowFilter( [region_height region_width], spatialWindowFraction, spatialWindowType);

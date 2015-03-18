@@ -50,7 +50,6 @@ TX_TRUE = Parameters.TranslationX(image_numbers);
 % Perform the correlations
 if parallel_processing
     parfor k = 1 : number_of_images
-
         
         % Print the iteration number
         fprintf('On region %d of %d\n', k, number_of_images);
@@ -63,7 +62,6 @@ if parallel_processing
     end 
 else
     for k = 1 : number_of_images
-
         
         % Print the iteration number
         fprintf('On region %d of %d\n', k, number_of_images);
@@ -74,7 +72,6 @@ else
         [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
             spatial_window .* region_02);       
     end 
-
 end
    
 
