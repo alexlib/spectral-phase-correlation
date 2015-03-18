@@ -1,10 +1,10 @@
-function [PHASE_PLANE_UNWRAPPED] = unwrap_phase_herraez(PHASE_PLANE_WRAPPED_COMPLEX)
+function [PHASE_PLANE_UNWRAPPED] = unwrap_phase_herraez(PHASE_ANGLE_PLANE_WRAPPED)
 
 % Size of the complex plane
-[m,n]=size(PHASE_PLANE_WRAPPED_COMPLEX);
+[m,n]=size(PHASE_ANGLE_PLANE_WRAPPED);
 
 % Convert complex plane to phase angle plane
-PHASE_PLANE_UNWRAPPED = angle(PHASE_PLANE_WRAPPED_COMPLEX);
+PHASE_PLANE_UNWRAPPED = PHASE_ANGLE_PLANE_WRAPPED;
 
 H=zeros(m-2,n-2);V=zeros(m-2,n-2);D1=zeros(m-2,n-2);D2=zeros(m-2,n-2);
 %CALCULATING SECOND DIFFERENCE

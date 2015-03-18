@@ -1,4 +1,4 @@
-function [PHASE_PLANE_UNWRAPPED, BRANCH_CUT_MATRIX] = GoldsteinUnwrap2D(PHASE_PLANE_WRAPPED_COMPLEX, MAX_BOX_SIZE, COMPILED)
+function [PHASE_PLANE_UNWRAPPED, BRANCH_CUT_MATRIX] = GoldsteinUnwrap2D(PHASE_ANGLE_PLANE_WRAPPED, MAX_BOX_SIZE, COMPILED)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GoldsteinUnwrap2D implements 2D Goldstein branch cut phase unwrapping algorithm.
 %
@@ -22,14 +22,11 @@ if nargin < 3
     COMPILED = 0;
 end
 
-% Phase angle plane
-phase_angle_plane_wrapped = angle(PHASE_PLANE_WRAPPED_COMPLEX);
-
 % Choose between compiled and non-compiled codes.
 if COMPILED
     
     % Calculate residue charges
-    residue_matrix = calculate_phase_residues_mex(phase_angle_plane_wrapped);
+    residue_matrix = calculate_phase_residues_mex(PHASE_ANGLE_PLANE_WRAPPED);
     
      % Create the residue flags matrix
     flags_matrix = make_flags_matrix_mex(residue_matrix);
@@ -42,13 +39,13 @@ if COMPILED
         flags_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase
-    PHASE_PLANE_UNWRAPPED = FloodFill_mex(phase_angle_plane_wrapped,...
+    PHASE_PLANE_UNWRAPPED = FloodFill_mex(PHASE_ANGLE_PLANE_WRAPPED,...
         BRANCH_CUT_MATRIX);
 
 else
     
     % Calculate residue charges
-    residue_matrix = calculate_phase_residues(phase_angle_plane_wrapped);
+    residue_matrix = calculate_phase_residues(PHASE_ANGLE_PLANE_WRAPPED);
     
      % Create the residue flags matrix
     flags_matrix = make_flags_matrix(residue_matrix);
@@ -61,7 +58,7 @@ else
         flags_matrix, MAX_BOX_SIZE)); 
     
     % Unwrap the phase
-    PHASE_PLANE_UNWRAPPED = FloodFill(phase_angle_plane_wrapped,...
+    PHASE_PLANE_UNWRAPPED = FloodFill(PHASE_ANGLE_PLANE_WRAPPED,...
         BRANCH_CUT_MATRIX);
 
 end
