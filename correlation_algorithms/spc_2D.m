@@ -14,7 +14,7 @@ switch upper(UNWRAP_METHOD)
     case 'GOLDSTEIN'
         
         % Set the maximum radius of the branch cut search box.
-        max_box_size = 7;
+        max_box_size = 9;
         
         % Unwrap the phase plane using the Goldstein method.
         [phase_plane_unwrapped, branch_cut_matrix] = GoldsteinUnwrap2D(phase_plane_wrapped_complex, max_box_size, COMPILED);

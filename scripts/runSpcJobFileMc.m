@@ -28,7 +28,7 @@ for n = 1 : nJobs
     regionHeight = JobFile.Parameters.RegionHeight;
     regionWidth = JobFile.Parameters.RegionWidth;
     caseName = JobFile.CaseName;
-    correlation_type = JobFile.CorrelationType;
+    correlation_type = lower(JobFile.CorrelationType);
     imageType = JobFile.ImageType;
     setType = JobFile.SetType;
     startSet = JobFile.Parameters.Sets.Start;
@@ -110,13 +110,15 @@ for n = 1 : nJobs
             setTic = tic;
 
             % Choose among correlation types.
-            switch correlation_type
+            switch lower(correlation_type)
                 case 'spc'
                     % % Perform analysis % %
                     MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
                     spcErrorAnalysisMonteCarlo(MonteCarloParams);
                 case 'rpc'
                     rpcErrorAnalysisMonteCarlo(MonteCarloParams);
+                case 'scc'
+                    sccErrorAnalysisMonteCarlo(MonteCarloParams);
             end
 
             % Display elapsed time.

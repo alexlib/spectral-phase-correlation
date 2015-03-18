@@ -39,7 +39,6 @@ load(parameters_file_path);
 % Image numbers
 image_numbers = start_image : skip_image : end_image;
 
-
 % Number of images
 [region_height, region_width, number_of_images] = size(imageMatrix1(:, :, image_numbers));
 

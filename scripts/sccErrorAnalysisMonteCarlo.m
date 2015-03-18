@@ -1,4 +1,4 @@
-function  rpcErrorAnalysisMonteCarlo(MONTE_CARLO_PARAMETERS); 
+function  sccErrorAnalysisMonteCarlo(MONTE_CARLO_PARAMETERS); 
 
 % Parse the input structure
 JobFile = MONTE_CARLO_PARAMETERS.JobFile;
@@ -23,9 +23,6 @@ parallel_processing = JobFile.JobOptions.ParallelProcessing;
 spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
 spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
 
-% Spatial RPC diameter
-spatial_rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter; % Spatial image RPC diameter (pixels)
-
 % Load images
 load(image_file_path);
 
@@ -36,12 +33,12 @@ load(parameters_file_path);
 image_numbers = start_image : skip_image : end_image;
 
 % Number of images
-[region_height, region_width, number_of_images] = size(imageMatrix1(image_numbers));
+[region_height, region_width, number_of_images] = size(imageMatrix1(:, :, image_numbers));
 
 % Create the spatial window
 spatial_window = gaussianWindowFilter( [region_height region_width], spatialWindowFraction, spatialWindowType);
 
-% Initialize vectors to hold translation estimates
+% Initialize vectors to hold translation estimates (SPC)
 TY_EST = zeros(number_of_images, 1);
 TX_EST = zeros(number_of_images, 1);
 
@@ -49,24 +46,24 @@ TX_EST = zeros(number_of_images, 1);
 TY_TRUE = Parameters.TranslationY(image_numbers);
 TX_TRUE = Parameters.TranslationX(image_numbers);
 
-% Create the 2-D spectral filter (i.e. RPC filter)
-rpc_spectral_filter = spectralEnergyFilter(region_height, region_width, spatial_rpc_diameter); % Raw image RPC spectral energy filter
-
+% Do the correlations
 % Perform the correlations
 if parallel_processing
     parfor k = 1 : number_of_images
+
         
         % Print the iteration number
         fprintf('On region %d of %d\n', k, number_of_images);
-
+        
         % Read the raw images
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
-        [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
-            spatial_window .* region_02, rpc_spectral_filter);       
+        [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
+            spatial_window .* region_02);       
     end 
 else
     for k = 1 : number_of_images
+
         
         % Print the iteration number
         fprintf('On region %d of %d\n', k, number_of_images);
@@ -74,11 +71,13 @@ else
         % Read the raw images
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
-        [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
-            spatial_window .* region_02, rpc_spectral_filter);       
+        [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
+            spatial_window .* region_02);       
     end 
+
 end
- 
+   
+
 % Save the output data
 save(results_save_path, 'JobFile','TY_EST', 'TX_EST','TY_TRUE', 'TX_TRUE');
 

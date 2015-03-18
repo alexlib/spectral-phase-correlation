@@ -20,8 +20,8 @@ DefaultJob.Parameters.Sets.Start = 1;
 DefaultJob.Parameters.Sets.End = 1;
 DefaultJob.Parameters.Sets.ImagesPerSet = 10000;
 
-DefaultJob.Parameters.Images.Start = 5635;
-DefaultJob.Parameters.Images.End = 5635;
+DefaultJob.Parameters.Images.Start = 1;
+DefaultJob.Parameters.Images.End = 100;
 DefaultJob.Parameters.Images.Skip = 1;
 
 DefaultJob.Parameters.RepositoryPath =  '~/Desktop/spc_test';
@@ -42,11 +42,11 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 % JOB 1
 SegmentItem = DefaultJob;
 SegmentItem.CaseName = '2015-03-13_spc_test';
-SegmentItem.CorrelationType = 'spc';
+SegmentItem.CorrelationType = 'SCC';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
+SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 JOBLIST(1) = SegmentItem;
 
 
