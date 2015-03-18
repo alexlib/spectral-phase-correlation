@@ -5,7 +5,7 @@ function [PHASE_ANGLE_UNWRAPPED_ROWS, PHASE_ANGLE_UNWRAPPED_COLS] = ...
 
 % Calculate the SVD modes of the complex phase plane.
 % Returned values are complex.
-[svd_rows, ~, svd_cols] = svd(PHASE_PLANE_WRAPPED_COMPLEX);
+[svd_rows, E, svd_cols] = svd(PHASE_PLANE_WRAPPED_COMPLEX);
 
 % Calculate the (wrapped) phase angles of the dominant modes of each SVD matrix.
 % The angle() function inherently sets the range of these 

@@ -42,7 +42,6 @@ ty_err_svd = TY_EST - TY_TRUE;
 tx_err_svd = TX_EST - TX_TRUE;
 err_mag_svd= sqrt(ty_err_svd .^ 2 + tx_err_svd .^ 2);
 
-
 % Make CDF plots.
 f1 = cdfplot(err_mag_scc);
 set(f1, 'linewidth', 2);

@@ -1,4 +1,5 @@
-function [TY, TX] = spc_2D(REGION_01, REGION_02, WEIGHTING_MATRIX, UNWRAP_METHOD, COMPILED);
+function [TY, TX] = spc_2D(REGION_01, REGION_02, WEIGHTING_MATRIX,...
+    PHASE_FILTER_TYPE, UNWRAP_METHOD, COMPILED);
 
 % Phase only correlaiton of images
 % Returns complex plane
@@ -6,8 +7,8 @@ phase_plane_wrapped_complex = fftshift(phaseCorrelation(...
     REGION_01, REGION_02));
 
 % Filter plane
-phase_plane_filtered_complex = phase_mean_filter(...
-    phase_plane_wrapped_complex, [5, 5]);
+phase_plane_filtered_complex = filter_complex_phase_plane(...
+    phase_plane_wrapped_complex, PHASE_FILTER_TYPE);
 
 % Unwrap using the chosen unwrapping method
 % Other methods can be added.

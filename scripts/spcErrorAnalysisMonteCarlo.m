@@ -42,7 +42,6 @@ image_numbers = start_image : skip_image : end_image;
 % Number of images
 [region_height, region_width, number_of_images] = size(imageMatrix1(:, :, image_numbers));
 
-
 % Create the spatial window
 spatial_window = gaussianWindowFilter( [region_height region_width],...
     spatialWindowFraction, spatialWindowType);
@@ -110,6 +109,10 @@ switch phase_unwrapping_method
         % All the other phase unwrapping algorithms are 2D,
         % so create the same filters for all of them.
         
+        % Read the filter type.
+        phase_filter_type = JobFile.Parameters. ...
+            Processing.PhaseFilterAlgorithm;
+        
         % Create the 2-D spectral filter (i.e. RPC filter)
         rpc_spectral_filter = spectralEnergyFilter(region_height, ...
             region_width, spatial_rpc_diameter); 
@@ -132,7 +135,8 @@ switch phase_unwrapping_method
                 region_02 = double(imageMatrix2(:, :, image_numbers(k)));
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
-                    phase_unwrapping_method, run_compiled);  
+                    phase_filter_type, phase_unwrapping_method, ...
+                    run_compiled);  
             end  
         
         else
@@ -147,11 +151,10 @@ switch phase_unwrapping_method
                 region_02 = double(imageMatrix2(:, :, image_numbers(k)));
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
-                    phase_unwrapping_method, run_compiled);  
-            end  
-        
+                    phase_filter_type, phase_unwrapping_method, ...
+                    run_compiled);   
+            end         
         end
-        
 end
 
 % Save the output data
