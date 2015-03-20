@@ -12,11 +12,12 @@ rpc_file_path = fullfile(parent_dir, 'rpc', 'errorAnalysis_mc_rpc_h64_w64_00001.
 scc_file_path = fullfile(parent_dir, 'scc', 'errorAnalysis_mc_scc_h64_w64_00001.mat');
 
 % SPC Goldstein file path
-spc_gold_file_path = fullfile(parent_dir, 'spc', 'errorAnalysis_mc_spc_h64_w64_goldstein_00001.mat');
+spc_gold_svd_file_path = fullfile(parent_dir, ...
+'spc', 'errorAnalysis_mc_spc_h64_w64_goldstein_svd_00001.mat');
 
 % SPC SVD file path
-spc_svd_file_path = fullfile(parent_dir, 'spc', 'errorAnalysis_mc_spc_h64_w64_svd_00001.mat');
-
+spc_gold_mean_file_path = fullfile(parent_dir,...
+    'spc', 'errorAnalysis_mc_spc_h64_w64_goldstein_mean_filt_00001.mat');
 
 % Load the RPC file and calculate the RPC errors
 load(rpc_file_path);
@@ -31,16 +32,16 @@ tx_err_scc = TX_EST - TX_TRUE;
 err_mag_scc = sqrt(ty_err_scc .^ 2 + tx_err_scc .^ 2);
 
 % Calculate the SPC Goldstein errors
-load(spc_gold_file_path);
+load(spc_gold_svd_file_path);
 ty_err_gold = TY_EST - TY_TRUE;
 tx_err_gold = TX_EST - TX_TRUE;
-err_mag_gold = sqrt(ty_err_gold .^ 2 + tx_err_gold .^ 2);
+err_mag_gold_svd = sqrt(ty_err_gold .^ 2 + tx_err_gold .^ 2);
 
 % Calculate the SPC SVD errors.
-load(spc_svd_file_path);
-ty_err_svd = TY_EST - TY_TRUE;
-tx_err_svd = TX_EST - TX_TRUE;
-err_mag_svd= sqrt(ty_err_svd .^ 2 + tx_err_svd .^ 2);
+load(spc_gold_mean_file_path);
+ty_err_mean_filt = TY_EST - TY_TRUE;
+tx_err_mean_filt = TX_EST - TX_TRUE;
+err_mag_mean_filt= sqrt(ty_err_mean_filt .^ 2 + tx_err_mean_filt .^ 2);
 
 % Make CDF plots.
 f1 = cdfplot(err_mag_scc);
@@ -53,11 +54,11 @@ f2 = cdfplot(err_mag_rpc);
 set(f2, 'linewidth', 2);
 set(f2, 'color', 'red')
 
-f3 = cdfplot(err_mag_gold);
+f3 = cdfplot(err_mag_gold_svd);
 set(f3, 'linewidth', 2);
 set(f3, 'color', 'black')
 
-f4 = cdfplot(err_mag_svd);
+f4 = cdfplot(err_mag_mean_filt);
 set(f4, 'linewidth', 2);
 set(f4, 'color', 'black')
 set(f4, 'linestyle', '--'); 
@@ -77,7 +78,7 @@ title({'CDFs of translation error from Monte Carlo', 'analysis of SCC, RPC, and 
     'FontSize', fSize);
 
 % Make a legend
-L = legend('SCC', 'RPC', 'SPC (2-D Goldstein)', 'SPC (1-D SVD)');
+L = legend('SCC', 'RPC', 'SPC (2-D Goldstein w/SVD filt)', 'SPC (2-D Goldstein w/mean filt)');
 set(L, 'FontSize', fSize);
 set(L, 'location', 'southeast');
 

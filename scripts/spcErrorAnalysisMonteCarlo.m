@@ -30,6 +30,9 @@ spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction;
 % Spatial RPC diameter (pixels)
 spatial_rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter;
 
+% Zero mean images flag
+zero_mean_regions = JobFile.JobOptions.ZeroMeanRegions;
+
 % Load images
 load(image_file_path);
 
@@ -56,6 +59,7 @@ TX_EST = zeros(number_of_images, 1);
 % Read the true translations, which will be saved to file.
 TY_TRUE = Parameters.TranslationY(image_numbers);
 TX_TRUE = Parameters.TranslationX(image_numbers);
+
 
 % Create the spectral filters
 switch phase_unwrapping_method
@@ -84,7 +88,14 @@ switch phase_unwrapping_method
 
                 % Read the raw images
                 region_01 = double(imageMatrix1(:, :, image_numbers(k)));
-                region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+                region_02 = double(imageMatrix2(:, :, image_numbers(k))); 
+                
+                % Zero-mean if requested
+                if zero_mean_regions
+                    region_01 = region_01 ./ mean(region_01(:));
+                    region_02 = region_02 ./ mean(region_02(:));
+                end
+                
                 [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
                 region_01, spatial_window .* region_02,...
                 spectral_weights_rows, spectral_weights_cols);       
@@ -92,12 +103,20 @@ switch phase_unwrapping_method
         
         else
             for k = 1 : number_of_images
+
                 % Print the iteration number
                 fprintf('On region %d of %d\n', k, number_of_images);
 
                 % Read the raw images
                 region_01 = double(imageMatrix1(:, :, image_numbers(k)));
                 region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+                
+                % Zero-mean if requested
+                if zero_mean_regions
+                    region_01 = region_01 ./ mean(region_01(:));
+                    region_02 = region_02 ./ mean(region_02(:));
+                end
+
                 [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
                 region_01, spatial_window .* region_02,...
                 spectral_weights_rows, spectral_weights_cols);  
@@ -133,6 +152,13 @@ switch phase_unwrapping_method
                 % Read the raw images
                 region_01 = double(imageMatrix1(:, :, image_numbers(k)));
                 region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+                
+                % Zero-mean if requested
+                if zero_mean_regions
+                    region_01 = region_01 ./ mean(region_01(:));
+                    region_02 = region_02 ./ mean(region_02(:));
+                end
+
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
                     phase_filter_type, phase_unwrapping_method, ...
@@ -149,6 +175,13 @@ switch phase_unwrapping_method
                 % Read the raw images
                 region_01 = double(imageMatrix1(:, :, image_numbers(k)));
                 region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+                
+                % Zero-mean if requested
+                if zero_mean_regions
+                    region_01 = region_01 ./ mean(region_01(:));
+                    region_02 = region_02 ./ mean(region_02(:));
+                end
+
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
                     phase_filter_type, phase_unwrapping_method, ...

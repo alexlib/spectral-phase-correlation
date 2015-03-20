@@ -1,6 +1,6 @@
 function JOBLIST = spcJobList_mc()
 
-DefaultJob.JobOptions.ParallelProcessing = 0;
+DefaultJob.JobOptions.ParallelProcessing = 1;
 DefaultJob.JobOptions.NumberOfDigits = 6;
 DefaultJob.JobOptions.BooleanGenerateParticleImages = false;
 DefaultJob.JobOptions.BooleanRunAnalysis = true;
@@ -8,7 +8,8 @@ DefaultJob.JobOptions.FlipYTranslation = false;
 DefaultJob.JobOptions.SkipExistingSets = false;
 DefaultJob.JobOptions.RepositoryPathIsAbsolute = 1;
 DefaultJob.JobOptions.DoAffineTransform = 0;
-DefaultJob.JobOptions.RunCompiled = 0;
+DefaultJob.JobOptions.RunCompiled = 1;
+DefaultJob.JobOptions.ZeroMeanRegions = 0;
 
 DefaultJob.ImageType = 'synthetic';
 DefaultJob.SetType = 'mc';
@@ -42,8 +43,9 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 
 % JOB 1
 SegmentItem = DefaultJob;
-SegmentItem.CaseName = '2015-03-13_spc_test';
+SegmentItem.CaseName = '2015-03-20_spc_test_subpixel';
 SegmentItem.CorrelationType = 'RPC';
+SegmentItem.JobOptions.ZeroMeanRegions = 1;
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
@@ -51,8 +53,9 @@ JOBLIST(1) = SegmentItem;
 
 % JOB 1
 SegmentItem = DefaultJob;
-SegmentItem.CaseName = '2015-03-13_spc_test';
+SegmentItem.CaseName = '2015-03-20_spc_test_subpixel';
 SegmentItem.CorrelationType = 'SCC';
+SegmentItem.JobOptions.ZeroMeanRegions = 1;
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
@@ -60,23 +63,26 @@ JOBLIST(end + 1) = SegmentItem;
 
 % JOB 1
 SegmentItem = DefaultJob;
-SegmentItem.CaseName = '2015-03-13_spc_test';
-SegmentItem.CorrelationType = 'SPC';
-SegmentItem.Parameters.RegionHeight = 64;
-SegmentItem.Parameters.RegionWidth = 64;
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
-JOBLIST(end + 1) = SegmentItem;
-
-% JOB 1
-SegmentItem = DefaultJob;
-SegmentItem.CaseName = '2015-03-13_spc_test';
+SegmentItem.CaseName = '2015-03-20_spc_test_subpixel';
 SegmentItem.CorrelationType = 'SPC';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
 SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
+SegmentItem.Parameters.Processing.PhaseFilterAlgorithm = 'SVD';
 JOBLIST(end + 1) = SegmentItem;
+
+% % JOB 1
+% SegmentItem = DefaultJob;
+% SegmentItem.CaseName = '2015-03-13_spc_test';
+% SegmentItem.CorrelationType = 'SPC';
+% SegmentItem.JobOptions.ZeroMeanRegions = 1;
+% SegmentItem.Parameters.RegionHeight = 64;
+% SegmentItem.Parameters.RegionWidth = 64;
+% SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
+% SegmentItem.Parameters.Processing.PhaseFilterAlgorithm = 'MEAN';
+% SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
+% JOBLIST(end + 1) = SegmentItem;
 
 end
 
