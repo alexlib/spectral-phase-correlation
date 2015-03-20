@@ -24,6 +24,7 @@ for n = 1 : nJobs
 
     % Read processing parameters
     phase_unwrapping_algorithm = JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm;
+    phase_filter_algorithm = JobFile.Parameters.Processing.PhaseFilterAlgorithm;
     skipExistingSets = JobFile.JobOptions.SkipExistingSets;
     regionHeight = JobFile.Parameters.RegionHeight;
     regionWidth = JobFile.Parameters.RegionWidth;
@@ -61,7 +62,7 @@ for n = 1 : nJobs
 
     % Base names of results files
     if ~isempty(regexpi(correlation_type, 'spc'))
-        saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' lower(phase_unwrapping_algorithm) '_'];
+        saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_unwrap_' lower(phase_unwrapping_algorithm) '_filt_' lower(phase_filter_algorithm) '_'];
     else
         saveBase = ['errorAnalysis_' setType '_' correlation_type '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
     end
