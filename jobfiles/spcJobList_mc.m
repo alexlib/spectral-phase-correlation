@@ -67,7 +67,7 @@ SegmentItem.CorrelationType = 'SPC';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
+SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'Goldstein';
 SegmentItem.Parameters.Processing.PhaseFilterAlgorithm = 'None';
 JOBLIST(end + 1) = SegmentItem;
 
@@ -78,7 +78,7 @@ SegmentItem.CorrelationType = 'SPC';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
+SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'Goldstein';
 SegmentItem.Parameters.Processing.PhaseFilterAlgorithm = 'Mean';
 JOBLIST(end + 1) = SegmentItem;
 
@@ -89,7 +89,7 @@ SegmentItem.CorrelationType = 'SPC';
 SegmentItem.Parameters.RegionHeight = 64;
 SegmentItem.Parameters.RegionWidth = 64;
 SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
-SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
+SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'Goldstein';
 SegmentItem.Parameters.Processing.PhaseFilterAlgorithm = 'SVD';
 JOBLIST(end + 1) = SegmentItem;
 

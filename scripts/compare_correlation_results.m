@@ -97,7 +97,8 @@ title({'CDFs of translation error from Monte Carlo', 'analysis of SCC, RPC, and 
     'FontSize', fSize, 'interpreter', 'Tex');
 
 % Make a legend
-L = legend('RPC', 'SCC', 'SPC (2-D Goldstein, no filt)', 'SPC (2-D Goldstein w/SVD filt)', 'SPC (2-D Goldstein w/mean filt)');
+% L = legend('RPC', 'SCC', 'SPC (no unwrap, no filt)', 'SPC (no unwrap, SVD filt)', 'SPC (no unwrap, mean filt)');
+L = legend('RPC', 'SCC', 'SPC (Goldstein unwrap, no filt)', 'SPC (Goldstein unwrap, SVD filt)', 'SPC (Goldstein unwrap, mean filt)');
 % L = legend('RPC', 'SPC (2-D Goldstein w/SVD filt)');
 set(L, 'FontSize', fSize);
 set(L, 'location', 'southeast');

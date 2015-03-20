@@ -1,4 +1,4 @@
-function runSpcJobFileMc(JOBLIST)
+function runMonteCarloCorrelationJobFile(JOBLIST)
 
 % Add paths
 addpath(fullfile('..', 'correlation_algorithms'));
@@ -115,13 +115,7 @@ for n = 1 : nJobs
             '_h' num2str(regionHeight) ...
             '_w' num2str(regionWidth) '_'];
     end
-    
-    % Extract parameters specific to RPC
-    if isRpc
-        
-    end
-    
-
+  
     % Loop over all the sets
     for k = 1 : nSets             
 
@@ -157,17 +151,19 @@ for n = 1 : nJobs
             % Start set timer.
             setTic = tic;
 
-            % Choose among correlation types.
-            switch lower(correlation_type)
-                case 'spc'
-                    % % Perform analysis % %
-                    MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
-                    spcErrorAnalysisMonteCarlo(MonteCarloParams);
-                case 'rpc'
-                    rpcErrorAnalysisMonteCarlo(MonteCarloParams);
-                case 'scc'
-                    sccErrorAnalysisMonteCarlo(MonteCarloParams);
-            end
+%             % Choose among correlation types.
+%             switch lower(correlation_type)
+%                 case 'spc'
+%                     % % Perform analysis % %
+%                     MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
+%                     spcErrorAnalysisMonteCarlo(MonteCarloParams);
+%                 case 'rpc'
+%                     rpcErrorAnalysisMonteCarlo(MonteCarloParams);
+%                 case 'scc'
+%                     sccErrorAnalysisMonteCarlo(MonteCarloParams);
+%             end
+            correlationErrorAnalysisMonteCarlo(MonteCarloParams);
+
 
             % Display elapsed time.
             setTime = toc(setTic);
