@@ -29,6 +29,9 @@ zero_mean_regions = JobFile.JobOptions.ZeroMeanRegions;
 spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial window type
 spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
 
+% Weighted fit option
+weightedFitMethod = lower(JobFile.Parameters.Processing.WeightedFitMethod);
+
 % Load images
 load(image_file_path);
 
@@ -104,11 +107,22 @@ if isSpc
     phase_unwrapping_method = JobFile.Parameters.Processing. ...
         PhaseUnwrappingAlgorithm;
     
-    % Make the 2-D SPC filter
-    spc_weighting_matrix = rpc_spectral_filter;
-    spc_weighting_matrix(spc_weighting_matrix < ...
-        spc_cutoff_amplitude) = 0;
-       
+    % Switch between weighting methods
+    switch weightedFitMethod
+        
+        case 'rpc'
+
+            % Make the 2-D SPC filter
+            spc_weighting_matrix = rpc_spectral_filter;
+            spc_weighting_matrix(spc_weighting_matrix < ...
+            spc_cutoff_amplitude) = 0;
+        
+        otherwise
+        % Case of no weighting.
+        spc_weighting_matrix = ones([region_height, region_width],...
+            'double');
+    end
+    
 else
     % Just set values so the parfor loop runs.
     spc_weighting_matrix = 1;
@@ -117,9 +131,6 @@ else
     phase_unwrapping_method = '';
     
 end
-
-% Hard code the weighting matrix to ones
-spc_weighting_matrix = ones([region_height, region_width], 'double');
 
 % Perform the correlations
 if parallel_processing

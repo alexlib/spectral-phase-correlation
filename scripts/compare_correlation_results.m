@@ -3,7 +3,7 @@
 fSize = 16;
 
 % Case name
-case_name = '2015-03-20_spc_test';
+case_name = '2015-03-26_spc_test';
 
 % Parent directory containing all the error analyses
 parent_dir = fullfile('~/Desktop/spc_test/analysis/data/synthetic/mc', case_name, '64x64');
@@ -14,21 +14,23 @@ rpc_file_path = fullfile(parent_dir, 'rpc', 'errorAnalysis_mc_rpc_h64_w64_00001.
 % SCC file path
 scc_file_path = fullfile(parent_dir, 'scc', 'errorAnalysis_mc_scc_h64_w64_00001.mat');
 
-% SPC Goldstein SVD file path
+% SPC Goldstein, mean filtered
 spc_gold_svd_file_path = fullfile(parent_dir, ...
-'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_svd_00001.mat');
+'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_mean_00001');
 
-% SPC SVD file path
+% SPC Goldstein, mean-then-svd
 spc_gold_mean_file_path = fullfile(parent_dir,...
-    'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_mean_00001.mat');
+    'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_mean_svd_00001.mat');
 
-% SPC unfiltered file path
+% SPC Goldstein, svd-then-mean
 spc_gold_none_file_path = fullfile(parent_dir,...
-    'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_none_00001.mat');
-
-% SPC goldstein SVD + mean file path
-spc_gold_svd_mean_file_path = fullfile(parent_dir,...
     'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_svd_mean_00001.mat');
+
+% SPC goldstein SVD only
+spc_gold_svd_mean_file_path = fullfile(parent_dir,...
+    'spc', 'errorAnalysis_mc_spc_h64_w64_uerrorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_svd_00001nwrap_goldstein_filt_svd_mean_00001.mat');
+
+
 
 
 % Load the RPC file and calculate the RPC errors

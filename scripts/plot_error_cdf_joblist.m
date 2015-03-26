@@ -1,4 +1,4 @@
-function runMonteCarloCorrelationJobFile(JOBLIST)
+function plot_error_cdf_joblist(JOBLIST)
 
 % Add paths
 addpath(fullfile('..', 'correlation_algorithms'));
@@ -17,6 +17,10 @@ addpath(fullfile('..', 'correlation_algorithms', 'polyfit3'));
 % Count number of jobs
 nJobs = length(JOBLIST);
 
+% Initialize the legend entry array
+legend_entries = cell(1, 1);
+
+
 for n = 1 : nJobs
 
     % Read joblist
@@ -33,25 +37,12 @@ for n = 1 : nJobs
     endSet = JobFile.Parameters.Sets.End;
     images_per_set = JobFile.Parameters.Sets.ImagesPerSet;
     
-    % First and last image
-    first_image = JobFile.Parameters.Images.Start;
-    end_image = JobFile.Parameters.Images.End;
-    skip_image = JobFile.Parameters.Images.Skip;
-
-    % Image list
-    image_list = first_image : skip_image : end_image;
     
-    % Number of images
-    num_images = length(image_list);
     
     % Correlation method
     % Valid methods: scc, rpc, gcc, spc, fmc
     correlation_type = lower(JobFile.CorrelationType);
     
-    % Weighted fit option
-    weightedFitMethod = lower(JobFile.Parameters. ...
-        Processing.WeightedFitMethod);
-
    % Number of digits in the set names
     setDigits = 5;
     % Numbering format tag for image sets
@@ -105,6 +96,7 @@ for n = 1 : nJobs
     % Flag specifying whether the job is FMC
     isFmc = ~isempty(regexpi(correlation_type, 'fmc'));
     
+
     % Base names of results files
     if isSpc
         
@@ -126,9 +118,14 @@ for n = 1 : nJobs
             saveBase = cat(2, saveBase, [filter_list{k} '_']);
         end
         
-        % Append the plane weight method
-        saveBase = cat(2, saveBase, ['weights_' weightedFitMethod '_']);
-            
+        % Legend entry for this case
+        legend_entries{n} = ['SPC ' phase_unwrapping_algorithm];
+        
+        % Append the filter names
+        for k = 1 : length(filter_list)
+            legend_entries{n} = cat(2, legend_entries{n}, [' ' filter_list{k}]);
+        end
+           
     else
         
         % Base name of the saved file (non-SPC)
@@ -137,6 +134,9 @@ for n = 1 : nJobs
             '_' correlation_type ...
             '_h' num2str(regionHeight) ...
             '_w' num2str(regionWidth) '_'];
+        
+        legend_entries{n} = correlation_type;
+        
     end
   
     % Loop over all the sets
@@ -145,13 +145,7 @@ for n = 1 : nJobs
         % Print message
         fprintf(1, ['Analyzing set ' ...
              correlation_type ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
-             ' of ' num2str(nSets) ')... ']); % Display status
-
-         % Specify directory containing images
-        image_dir = fullfile( imageParentDirectory, [ setBase num2str( setList(k), setFormat ) ], 'raw' ); % Image directory
-
-        % Path to the raw image file
-        image_file_path = fullfile(image_dir, ['raw_image_matrix_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat'] );
+             ' of ' num2str(nSets) ')... \n']); % Display status
 
          % Path to image parameters
         parameters_path = fullfile(imageParentDirectory,...
@@ -159,35 +153,42 @@ for n = 1 : nJobs
                 ['imageParameters_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat']);                         
 
          % Specify path to saved file
-         save_path = fullfile( writeDir, [ saveBase num2str( setList(k), setFormat ) '.mat' ] ); % Save path
-
-            % Perform analysis on the image set if "skip existing sets" isn't
-            % selected or if the set results don't exist.
-        if (~skipExistingSets) || (skipExistingSets && ~exist(save_path, 'file'))
-
-            % Read case parameters
-            MonteCarloParams.JobFile = JobFile;
-            MonteCarloParams.Save_Path = save_path;
-            MonteCarloParams.Image_File_Path = image_file_path;
-            MonteCarloParams.Image_Parameters_path = parameters_path;
-
-            % Start set timer.
-            setTic = tic;
-
-            % Run the correlation Monte Carlo analysis
-            correlationErrorAnalysisMonteCarlo(MonteCarloParams);
-
-            % Display elapsed time.
-            setTime = toc(setTic);
-            fprintf(1, 'Analyzed %d images in %0.2f sec\n', num_images, setTime);
-            fprintf(1, 'Saved results to %s\n', save_path);
-        else
-            % Inform user that the k'th set is being skipped.
-            disp(['Skipping set ' num2str(setList(k))]); 
-        end
+         results_path = fullfile( writeDir, [ saveBase num2str( setList(k), setFormat ) '.mat' ] ); % Save path
+        
+         % Load the parameters path
+         load(parameters_path);
+         
+         % Load the results path
+         load(results_path);
+         
+         % Calculate the error of each component of the disp. estimate
+         tx_err = TX_EST - TX_TRUE;
+         ty_err = TY_EST - TY_TRUE;
+         
+         % Calculate the magnitude of the error.
+         tx_err_mag = sqrt(tx_err.^2 + ty_err.^2);
+         
+         % Create a CDF plot of the error magnitude
+         p = cdfplot(tx_err_mag);
+         
+         set(p, 'linewidth', 2);
+         
+         % Hold the plot
+         hold on;
+        
     end
 
 end % End if  
+
+hold off;
+
+L = legend(legend_entries);
+set(L, 'FontSize', 12);
+set(L, 'location', 'SouthEast');
+axis square
+
+xlim([0, 0.25]);
+ylim([0 1]);
 
 end
 
