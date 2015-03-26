@@ -117,8 +117,22 @@ if isSpc
             spc_weighting_matrix(spc_weighting_matrix < ...
             spc_cutoff_amplitude) = 0;
         
-        otherwise
+        case 'tophat'
+            
+            % Read the cutoff wavenumber.
+            cutoff_wavenumber = JobFile.Parameters.Processing.FilterCutoff;
+            
+            % Make the weighting matrix.
+            spc_weighting_matrix = make_low_pass_filter_2D(...
+                region_height, region_width, cutoff_wavenumber);
+        
+        case 'none'
         % Case of no weighting.
+        spc_weighting_matrix = ones([region_height, region_width],...
+            'double');
+        
+        otherwise
+         % Default to no weighting
         spc_weighting_matrix = ones([region_height, region_width],...
             'double');
     end

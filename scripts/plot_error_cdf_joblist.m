@@ -1,5 +1,8 @@
 function plot_error_cdf_joblist(JOBLIST)
 
+% Plot font size.
+fSize = 14;
+
 % Add paths
 addpath(fullfile('..', 'correlation_algorithms'));
 addpath(fullfile('..', 'filtering'));
@@ -42,6 +45,10 @@ for n = 1 : nJobs
     % Correlation method
     % Valid methods: scc, rpc, gcc, spc, fmc
     correlation_type = lower(JobFile.CorrelationType);
+    
+    % Weighted fit option
+    weightedFitMethod = lower(JobFile.Parameters. ...
+        Processing.WeightedFitMethod);
     
    % Number of digits in the set names
     setDigits = 5;
@@ -118,6 +125,9 @@ for n = 1 : nJobs
             saveBase = cat(2, saveBase, [filter_list{k} '_']);
         end
         
+        % Append the plane weight method
+        saveBase = cat(2, saveBase, ['weights_' weightedFitMethod '_']);
+        
         % Legend entry for this case
         legend_entries{n} = ['SPC ' phase_unwrapping_algorithm];
         
@@ -125,6 +135,9 @@ for n = 1 : nJobs
         for k = 1 : length(filter_list)
             legend_entries{n} = cat(2, legend_entries{n}, [' ' filter_list{k}]);
         end
+        
+        % Append the weight to the legend name
+        legend_entries{n} = cat(2, legend_entries{n}, [', weights: ' weightedFitMethod]);
            
     else
         
@@ -135,7 +148,7 @@ for n = 1 : nJobs
             '_h' num2str(regionHeight) ...
             '_w' num2str(regionWidth) '_'];
         
-        legend_entries{n} = correlation_type;
+        legend_entries{n} = upper(correlation_type);
         
     end
   
@@ -171,7 +184,11 @@ for n = 1 : nJobs
          % Create a CDF plot of the error magnitude
          p = cdfplot(tx_err_mag);
          
-         set(p, 'linewidth', 2);
+         set(p, 'linewidth', 1);
+         
+         if n > 7
+             set(p, 'linestyle', '--');
+         end
          
          % Hold the plot
          hold on;
@@ -183,12 +200,21 @@ end % End if
 hold off;
 
 L = legend(legend_entries);
-set(L, 'FontSize', 12);
-set(L, 'location', 'SouthEast');
+set(L, 'FontSize', 10);
+set(L, 'location', 'NorthWest');
 axis square
 
-xlim([0, 0.25]);
+xlim([0, 0.1]);
 ylim([0 1]);
+
+title({'CDF of displacement error for different', ...
+    ['processing schemes, ' num2str(regionHeight) 'x' ...
+    num2str(regionWidth) ' regions'], ...
+    '|T_x| and |T_y| < 5 pix'}, 'FontSize', fSize);
+xlabel('Translation error magnitude (pix)', 'FontSize', fSize);
+ylabel('Cumulative probability', 'FontSize', fSize);
+
+set(gca, 'fontsize', fSize);
 
 end
 
