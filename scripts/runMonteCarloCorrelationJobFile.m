@@ -151,19 +151,8 @@ for n = 1 : nJobs
             % Start set timer.
             setTic = tic;
 
-%             % Choose among correlation types.
-%             switch lower(correlation_type)
-%                 case 'spc'
-%                     % % Perform analysis % %
-%                     MonteCarloParams.PhaseUnwrappingAlgorithm = phase_unwrapping_algorithm;
-%                     spcErrorAnalysisMonteCarlo(MonteCarloParams);
-%                 case 'rpc'
-%                     rpcErrorAnalysisMonteCarlo(MonteCarloParams);
-%                 case 'scc'
-%                     sccErrorAnalysisMonteCarlo(MonteCarloParams);
-%             end
+            % Run the correlation Monte Carlo analysis
             correlationErrorAnalysisMonteCarlo(MonteCarloParams);
-
 
             % Display elapsed time.
             setTime = toc(setTic);

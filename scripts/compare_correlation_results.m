@@ -3,7 +3,7 @@
 fSize = 16;
 
 % Case name
-case_name = '2015-03-20_spc_test_subpixel';
+case_name = '2015-03-20_spc_test';
 
 % Parent directory containing all the error analyses
 parent_dir = fullfile('~/Desktop/spc_test/analysis/data/synthetic/mc', case_name, '64x64');
@@ -25,6 +25,11 @@ spc_gold_mean_file_path = fullfile(parent_dir,...
 % SPC unfiltered file path
 spc_gold_none_file_path = fullfile(parent_dir,...
     'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_none_00001.mat');
+
+% SPC goldstein SVD + mean file path
+spc_gold_svd_mean_file_path = fullfile(parent_dir,...
+    'spc', 'errorAnalysis_mc_spc_h64_w64_unwrap_goldstein_filt_svd_mean_00001.mat');
+
 
 % Load the RPC file and calculate the RPC errors
 load(rpc_file_path);
@@ -56,6 +61,11 @@ ty_err_no_filt = TY_EST - TY_TRUE;
 tx_err_no_filt = TX_EST - TX_TRUE;
 err_mag_no_filt= sqrt(ty_err_no_filt .^ 2 + tx_err_no_filt .^ 2);
 
+% Calculate the SPC-MeanFilt errors.
+load(spc_gold_svd_mean_file_path);
+ty_err_mean_svd = TY_EST - TY_TRUE;
+tx_err_mean_svd = TX_EST - TX_TRUE;
+err_mag_mean_svd = sqrt(ty_err_mean_svd .^ 2 + tx_err_mean_svd .^ 2);
 
 % % Make CDF plots.
 f1 = cdfplot(err_mag_rpc);
@@ -81,6 +91,11 @@ set(f5, 'linewidth', 2);
 set(f5, 'color', 'black')
 set(f5, 'linestyle', '--'); 
 
+f6 = cdfplot(err_mag_mean_svd);
+set(f6, 'linewidth', 2);
+set(f6, 'color', 'red');
+set(f6, 'linestyle', '--');
+
 hold off
 
 axis square
@@ -93,14 +108,20 @@ ylabel('Cumulative probability', 'FontSize', fSize);
 xlabel('Translation error magnitude (pixels)', 'FontSize', fSize);
 
 title({'CDFs of translation error from Monte Carlo', 'analysis of SCC, RPC, and SPC (10^4 pairs)', ...
-    ['|T_X| < ' num2str(max(TX_TRUE), '%0.2f') ', |T_Y| < ' num2str(max(TX_TRUE), '%0.2f')]},...
-    'FontSize', fSize, 'interpreter', 'Tex');
+     'Unweighted least-squares plane fit',...
+     ['|T_X| < ' num2str(max(TX_TRUE), '%0.2f') ', |T_Y| < ' num2str(max(TX_TRUE), '%0.2f')]},...
+    'FontSize', 12, 'interpreter', 'Tex');
 
 % Make a legend
 % L = legend('RPC', 'SCC', 'SPC (no unwrap, no filt)', 'SPC (no unwrap, SVD filt)', 'SPC (no unwrap, mean filt)');
-L = legend('RPC', 'SCC', 'SPC (Goldstein unwrap, no filt)', 'SPC (Goldstein unwrap, SVD filt)', 'SPC (Goldstein unwrap, mean filt)');
+% L = legend('RPC', 'SCC', 'SPC (Goldstein unwrap, no filt)', 'SPC (Goldstein unwrap, SVD filt)', 'SPC (Goldstein unwrap, mean filt)');
+L = legend('RPC', 'SCC', ...
+           'SPC (Goldstein unwrap, no filt)', ...
+           'SPC (Goldstein unwrap, SVD filt)', ...
+           'SPC (Goldstein unwrap, mean filt)', ...
+           'SPC (Goldstein unwrap, SVD + mean filt)');
 % L = legend('RPC', 'SPC (2-D Goldstein w/SVD filt)');
-set(L, 'FontSize', fSize);
+set(L, 'FontSize', 12);
 set(L, 'location', 'southeast');
 
 

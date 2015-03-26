@@ -6,9 +6,17 @@ function [TY, TX] = spc_2D(REGION_01, REGION_02, WEIGHTING_MATRIX,...
 phase_plane_wrapped_complex = fftshift(phaseCorrelation(...
     REGION_01, REGION_02));
 
+% % Filter plane
+% phase_plane_filtered_complex = filter_complex_phase_plane(...
+%     phase_plane_wrapped_complex, PHASE_FILTER_TYPE);
+
 % Filter plane
 phase_plane_filtered_complex = filter_complex_phase_plane(...
-    phase_plane_wrapped_complex, PHASE_FILTER_TYPE);
+    phase_plane_wrapped_complex, 'svd');
+
+% Filter plane
+phase_plane_filtered_complex = filter_complex_phase_plane(...
+    phase_plane_filtered_complex, 'mean');
 
 % Unwrap using the chosen unwrapping method
 % Other methods can be added.

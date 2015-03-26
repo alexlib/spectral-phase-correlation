@@ -105,6 +105,9 @@ else
     
 end
 
+% Hard code the weighting matrix to ones
+spc_weighting_matrix = ones([region_height, region_width], 'double');
+
 % Perform the correlations
 if parallel_processing
     
