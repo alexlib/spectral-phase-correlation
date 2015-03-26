@@ -6,6 +6,9 @@ results_save_path = MONTE_CARLO_PARAMETERS.Save_Path;
 image_file_path = MONTE_CARLO_PARAMETERS.Image_File_Path;
 parameters_file_path = MONTE_CARLO_PARAMETERS.Image_Parameters_path;
 
+% Suppress messages?
+suppress_messages = JobFile.JobOptions.SuppressMessages;
+
 % Start and end image numbers
 start_image = JobFile.Parameters.Images.Start;
 end_image = JobFile.Parameters.Images.End;
@@ -85,8 +88,17 @@ if isSpc
     spc_cutoff_amplitude = 2 / (pi * spatial_rpc_diameter);
     
     % Read the filter type.
-    phase_filter_type = JobFile.Parameters.Processing. ...
-        PhaseFilterAlgorithm;
+    phase_filter_list = lower(JobFile.Parameters.Processing. ...
+        PhaseFilterList);
+    
+    % Read the phase filter kernel list
+    phase_filter_kernel_size_list = JobFile.Parameters.Processing. ...
+        KernelSizeList;
+    
+    % Augment the phase filter kernel size list if needed
+    if length(phase_filter_kernel_size_list) < length(phase_filter_list)
+       phase_filter_kernel_size_list{length(phase_filter_list)} = []; 
+    end
     
     % Read the unwrapping type
     phase_unwrapping_method = JobFile.Parameters.Processing. ...
@@ -100,7 +112,8 @@ if isSpc
 else
     % Just set values so the parfor loop runs.
     spc_weighting_matrix = 1;
-    phase_filter_type = '';
+    phase_filter_list = '';
+    phase_filter_kernel_size_list = '';
     phase_unwrapping_method = '';
     
 end
@@ -114,9 +127,11 @@ if parallel_processing
     % Parallel processing.
     parfor k = 1 : number_of_images
         
-        % Print the iteration number
-        fprintf('On region %d of %d\n', k, number_of_images);
-
+         % Print the iteration number
+        if ~suppress_messages
+            fprintf('On region %d of %d\n', k, number_of_images);
+        end
+        
         % Read the raw images
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
@@ -138,8 +153,8 @@ if parallel_processing
             case 'spc'
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
-                    phase_filter_type, phase_unwrapping_method, ...
-                    run_compiled); 
+                    phase_filter_list, phase_filter_kernel_size_list,...
+                    phase_unwrapping_method, run_compiled); 
         end                              
     end 
     
@@ -149,8 +164,10 @@ else
     for k = 1 : number_of_images
         
         % Print the iteration number
-        fprintf('On region %d of %d\n', k, number_of_images);
-
+        if ~suppress_messages
+            fprintf('On region %d of %d\n', k, number_of_images);
+        end
+        
         % Read the raw images
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
@@ -172,8 +189,8 @@ else
             case 'spc'
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
-                    phase_filter_type, phase_unwrapping_method, ...
-                    run_compiled); 
+                    phase_filter_list, phase_filter_kernel_size_list,...
+                    phase_unwrapping_method, run_compiled); 
         end                        
    end 
     

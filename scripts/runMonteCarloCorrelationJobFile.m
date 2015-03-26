@@ -33,6 +33,8 @@ for n = 1 : nJobs
     endSet = JobFile.Parameters.Sets.End;
     images_per_set = JobFile.Parameters.Sets.ImagesPerSet;
     
+    
+    
     % Correlation method
     % Valid methods: scc, rpc, gcc, spc, fmc
     correlation_type = lower(JobFile.CorrelationType);
@@ -94,8 +96,8 @@ for n = 1 : nJobs
     if isSpc
         
         % Processing parameters specific to SPC
-        phase_unwrapping_algorithm = JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm;
-        phase_filter_algorithm = JobFile.Parameters.Processing.PhaseFilterAlgorithm;
+        phase_unwrapping_algorithm = lower(JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm);
+        filter_list = lower(JobFile.Parameters.Processing.PhaseFilterList);
         
         % Base name of the saved file (SPC)
         saveBase = [...
@@ -103,8 +105,13 @@ for n = 1 : nJobs
             '_' correlation_type ...
             '_h' num2str(regionHeight)...
             '_w' num2str(regionWidth) ...
-            '_unwrap_' lower(phase_unwrapping_algorithm)...
-            '_filt_' lower(phase_filter_algorithm) '_'];
+            '_unwrap_' phase_unwrapping_algorithm...
+            '_filt_'];
+        
+        % Append all the filter names to the filename
+        for k = 1 : length(filter_list)
+            saveBase = cat(2, saveBase, [filter_list{k} '_']);
+        end
             
     else
         
@@ -157,6 +164,7 @@ for n = 1 : nJobs
             % Display elapsed time.
             setTime = toc(setTic);
             fprintf(1, 'Analyzed %d images in %0.2f sec\n', images_per_set, setTime);
+            fprintf(1, 'Saved results to %s\n', save_path);
         else
             % Inform user that the k'th set is being skipped.
             disp(['Skipping set ' num2str(setList(k))]); 

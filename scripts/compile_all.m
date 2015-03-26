@@ -17,5 +17,10 @@ compile_BranchCuts;
 disp('Compiling FloodFill.m to mex file...');
 compile_FloodFill;
 
+cd ../../filtering;
+
+disp('Compiling phase_median_filter.m to mex file...');
+compile_phase_median_filter;
+
 % Switch back to the parent directory
 cd(thisDir);
