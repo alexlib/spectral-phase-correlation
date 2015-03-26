@@ -15,7 +15,7 @@ imag_median = medfilt2(imag(sig_mag_norm), KERNEL_SIZE);
 
 % Assign the inverse tangent of the real and imaginary medians
 % to the solution array.
-FILTERED_COMPLEX_PHASE_PLANE = atan2(imag_median, real_median);
+FILTERED_COMPLEX_PHASE_PLANE = real_median + 1i * imag_median;
 
 end
 
