@@ -5,19 +5,25 @@
 thisDir = pwd;
 
 % Compile the codes in the "phase_unwrapping" directory
-cd ../phase_unwrapping/PhaseUnwrapping2D;
+cd ../phase_unwrapping;
 
 % Compile the Phase Residue code
 disp('Compiling PhaseResidues.m to mex file...');
-compile_PhaseResidues;
+compile_calculate_phase_residues;
 
 disp('Compiling BranchCuts.m to mex file...');
-compile_BranchCuts;
+compile_calculate_branch_cuts_goldstein;
 
 disp('Compiling FloodFill.m to mex file...');
 compile_FloodFill;
 
-cd ../../filtering;
+disp('Compiling make_flags_matrix.m to mex file ...');
+compile_make_flags_matrix;
+
+disp('Compiling remove_dipoles.m to mex file...');
+compile_remove_dipoles;
+
+cd ../filtering;
 
 disp('Compiling phase_median_filter.m to mex file...');
 compile_phase_median_filter;
