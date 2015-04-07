@@ -23,7 +23,7 @@ DefaultJob.Parameters.Sets.End = 1;
 DefaultJob.Parameters.Sets.ImagesPerSet = 10000;
 
 DefaultJob.Parameters.Images.Start = 1;
-DefaultJob.Parameters.Images.End = 100;
+DefaultJob.Parameters.Images.End = 10000;
 DefaultJob.Parameters.Images.Skip = 1;
 
 DefaultJob.Parameters.RepositoryPath =  '~/Desktop/spc_test';
@@ -32,7 +32,7 @@ DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
 DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
 DefaultJob.Parameters.Processing.PhaseFilterAlgorithm = 'MEAN';
 DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
-DefaultJob.Parameters.Processing.WeightedFitMethod = 'tophat';
+DefaultJob.Parameters.Processing.WeightedFitMethod = 'rpc';
 DefaultJob.Parameters.Processing.FilterCutoff = 15;
 % DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 
