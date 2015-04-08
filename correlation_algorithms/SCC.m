@@ -25,7 +25,9 @@ function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_SCC_PLANE, CORR_HEIGHT, CORR_DIA
 % Calculate the RPC plane between the two images.
 % This line is all done at once to increase speed by not writing variables at intermediate steps. 
 % SPATIAL_SCC_PLANE = freq2space(fftshift(phaseOnlyFilter(fftn(double(IMAGE2), [height, width]) .* conj(fftn(double(IMAGE1), [height, width])))) .* double(CORR_SPECTRALFILTER), height, width);
-SPATIAL_SCC_PLANE = freq2space(fftshift(fftn(double(IMAGE2), [height, width]) .* conj(fftn(double(IMAGE1), [height, width]))), height, width);
+SPATIAL_SCC_PLANE = freq2space(fftshift(fftn(double(IMAGE2),...
+    [height, width]) .* conj(fftn(double(IMAGE1), ...
+    [height, width]))), height, width);
 
 % Prana subplixel implmentation
 [TRANSLATION_Y, TRANSLATION_X, CORR_HEIGHT, CORR_DIAMETER] = subpixel(SPATIAL_SCC_PLANE, ones(size(SPATIAL_SCC_PLANE)), 1, 0); % Subpixel peak location (poorly commented function taken from Prana) 

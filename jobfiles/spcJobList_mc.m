@@ -8,7 +8,7 @@ DefaultJob.JobOptions.FlipYTranslation = false;
 DefaultJob.JobOptions.SkipExistingSets = false;
 DefaultJob.JobOptions.RepositoryPathIsAbsolute = 1;
 DefaultJob.JobOptions.DoAffineTransform = 0;
-DefaultJob.JobOptions.ZeroMeanRegions = 0;
+DefaultJob.JobOptions.ZeroMeanRegions = 1;
 DefaultJob.JobOptions.RunCompiled = 1;
 DefaultJob.JobOptions.SuppressMessages = 0;
 
