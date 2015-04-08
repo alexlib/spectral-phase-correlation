@@ -9,7 +9,7 @@ DefaultJob.JobOptions.SkipExistingSets = false;
 DefaultJob.JobOptions.RepositoryPathIsAbsolute = 1;
 DefaultJob.JobOptions.DoAffineTransform = 0;
 DefaultJob.JobOptions.ZeroMeanRegions = 1;
-DefaultJob.JobOptions.RunCompiled = 1;
+DefaultJob.JobOptions.RunCompiled = 0;
 DefaultJob.JobOptions.SuppressMessages = 0;
 
 DefaultJob.ImageType = 'synthetic';
@@ -32,7 +32,8 @@ DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
 DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
 DefaultJob.Parameters.Processing.PhaseFilterAlgorithm = 'MEAN';
 DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
-DefaultJob.Parameters.Processing.WeightedFitMethod = 'rpc';
+DefaultJob.Parameters.Processing.WeightedSpcPlaneFitMethod = 'rpc';
+DefaultJob.Parameters.Processing.PeakFitMethod = 'least_squares';
 DefaultJob.Parameters.Processing.FilterCutoff = 15;
 % DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 

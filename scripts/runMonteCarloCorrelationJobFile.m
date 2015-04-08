@@ -49,8 +49,8 @@ for n = 1 : nJobs
     correlation_type = lower(JobFile.CorrelationType);
     
     % Weighted fit option
-    weightedFitMethod = lower(JobFile.Parameters. ...
-        Processing.WeightedFitMethod);
+    weighted_spc_plane_fit_method = lower(JobFile.Parameters. ...
+        Processing.WeightedSpcPlaneFitMethod);
 
    % Number of digits in the set names
     setDigits = 5;
@@ -127,7 +127,7 @@ for n = 1 : nJobs
         end
         
         % Append the plane weight method
-        saveBase = cat(2, saveBase, ['weights_' weightedFitMethod '_']);
+        saveBase = cat(2, saveBase, ['weights_' weighted_spc_plane_fit_method '_']);
             
     else
         

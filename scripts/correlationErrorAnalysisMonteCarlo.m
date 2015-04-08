@@ -30,7 +30,12 @@ spatialWindowType =  JobFile.Parameters.Processing.SpatialWindowType; % Spatial 
 spatialWindowFraction = JobFile.Parameters.Processing.SpatialWindowFraction; % Spatial image window fraction (y, x)
 
 % Weighted fit option
-weightedFitMethod = lower(JobFile.Parameters.Processing.WeightedFitMethod);
+weighted_spc_plane_fit_method = lower( ...
+    JobFile.Parameters.Processing.WeightedSpcPlaneFitMethod);
+
+% Subpixel peak fit method
+subpixel_peak_fit_method = lower(...
+    JobFile.Parameters.Processing.PeakFitMethod);
 
 % Load images
 load(image_file_path);
@@ -108,7 +113,7 @@ if isSpc
         PhaseUnwrappingAlgorithm;
     
     % Switch between weighting methods
-    switch weightedFitMethod
+    switch weighted_spc_plane_fit_method
         
         case 'rpc'
 
@@ -146,6 +151,18 @@ else
     
 end
 
+% Convert the subpixel peak-fit method string extracted from the jobfile
+% into the numerical peak-fit method identifier expected by the function
+% subpixel.m
+switch subpixel_peak_fit_method
+    case 'least_squares'
+        subpixel_peak_fit_method_numerical = 3;
+    case '3_point'
+        subpixel_peak_fit_method_numerical = 1;
+    otherwise
+        subpixel_peak_fit_method_numerical = 1;
+end
+
 % Perform the correlations
 if parallel_processing
     
@@ -171,10 +188,14 @@ if parallel_processing
         switch lower(correlation_type)
             case 'scc'
                 [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
-                    spatial_window .* region_02);
+                    spatial_window .* region_02, ...
+                    subpixel_peak_fit_method_numerical);
+                
             case 'rpc'
                 [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
-                    spatial_window .* region_02, rpc_spectral_filter); 
+                    spatial_window .* region_02, rpc_spectral_filter, ...
+                    subpixel_peak_fit_method_numerical); 
+                
             case 'spc'
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
@@ -207,10 +228,14 @@ else
         switch lower(correlation_type)
             case 'scc'
                 [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
-                    spatial_window .* region_02);
+                    spatial_window .* region_02, ...
+                    subpixel_peak_fit_method_numerical);
+                
             case 'rpc'
                 [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
-                    spatial_window .* region_02, rpc_spectral_filter); 
+                    spatial_window .* region_02, rpc_spectral_filter, ...
+                    subpixel_peak_fit_method_numerical); 
+                
             case 'spc'
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
