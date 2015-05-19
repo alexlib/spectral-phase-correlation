@@ -1,5 +1,5 @@
 function PHASE_PLANE_WRAPPED_COMPLEX_FILT = ...
-    svd_phase_filter_2D(PHASE_PLANE_WRAPPED_COMPLEX)
+    svd_phase_filter_2D(PHASE_PLANE_WRAPPED_COMPLEX, NUM_MODES)
 % This function unwraps the dominant modes of the SVD of a 2D complex phase
 % plane into two 1D phase-angle vectors.
 
@@ -7,14 +7,20 @@ function PHASE_PLANE_WRAPPED_COMPLEX_FILT = ...
 % Returned values are complex.
 [svd_rows, eigen_vals, svd_cols] = svd(PHASE_PLANE_WRAPPED_COMPLEX);
 
-% Calculate the (wrapped) phase angles of the dominant modes of each SVD matrix.
-% The angle() function inherently sets the range of these 
-% vectors to (-pi, pi)
-svd_complex_rows = (svd_rows(:, 1));
-svd_complex_cols = (svd_cols(:, 1));
+% Eigen values as a row matrix
+eigen_vals_diag = (diag(eigen_vals));
+
+% Allocate the reconstructed phase plane
+PHASE_PLANE_WRAPPED_COMPLEX_FILT = zeros(size(PHASE_PLANE_WRAPPED_COMPLEX));
 
 % Reconstruct the complex phase 
-PHASE_PLANE_WRAPPED_COMPLEX_FILT = svd_complex_rows * eigen_vals(1,1) ...
-    * (svd_complex_cols)';
+for k = 1 : NUM_MODES
+
+    % Add each mode to the reconstructed plane.
+    PHASE_PLANE_WRAPPED_COMPLEX_FILT = PHASE_PLANE_WRAPPED_COMPLEX_FILT + ...
+        svd_rows(:, k) * eigen_vals_diag(k) ...
+        * (svd_cols(:, k))';
+
+end
 
 end

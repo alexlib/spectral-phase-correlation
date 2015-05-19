@@ -4,7 +4,8 @@ function PHASE_ONLY_CORRELATION_PLANE = phaseOnlyFilter(COMPLEX_CROSS_CORRELATIO
 
 % Calculate the spectral magnitude of the complex cross correlation
 % in the frequency domain
-spectral_magnitude = sqrt(COMPLEX_CROSS_CORRELATION_PLANE .* conj(COMPLEX_CROSS_CORRELATION_PLANE));
+spectral_magnitude = sqrt(COMPLEX_CROSS_CORRELATION_PLANE .* ...
+    conj(COMPLEX_CROSS_CORRELATION_PLANE));
 
 % If the value of the cross correlation is zero, set the magnitude to 1.
 % This avoids division by zero when calculating the phase correlation
@@ -12,7 +13,8 @@ spectral_magnitude = sqrt(COMPLEX_CROSS_CORRELATION_PLANE .* conj(COMPLEX_CROSS_
 spectral_magnitude(COMPLEX_CROSS_CORRELATION_PLANE == 0 ) = 1;
 
 % Divide cross correlation by its nonzero magnitude to extract the phase information
-PHASE_ONLY_CORRELATION_PLANE = COMPLEX_CROSS_CORRELATION_PLANE ./ spectral_magnitude;
+PHASE_ONLY_CORRELATION_PLANE = COMPLEX_CROSS_CORRELATION_PLANE ./ ...
+    spectral_magnitude;
 
 end
 
