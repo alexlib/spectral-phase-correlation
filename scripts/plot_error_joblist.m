@@ -1,4 +1,4 @@
-function plot_error_cdf_joblist(JOBLIST)
+function plot_error_joblist(JOBLIST)
 
 % Plot font size.
 fSize = 14;
@@ -174,6 +174,9 @@ for n = 1 : nJobs
          % Load the results path
          load(results_path);
          
+         % Particle diameter standard deviation
+         particle_diameter_std_dev = Parameters.ParticleDiameterStd;
+         
          % Calculate the error of each component of the disp. estimate
          tx_err = TX_EST - TX_TRUE;
          ty_err = TY_EST - TY_TRUE;
@@ -182,11 +185,10 @@ for n = 1 : nJobs
          tx_err_mag = sqrt(tx_err.^2 + ty_err.^2);
          
          % Create a CDF plot of the error magnitude
-         p = cdfplot(tx_err_mag);
-         set(p, 'linewidth', 1);
+         p = plot(particle_diameter_std_dev, tx_err_mag, 'o');
          
-         % Make lines dashed if there are more than seven
-         % of them.
+         set(p, 'markersize', 5);
+         
          if n > 7
              set(p, 'linestyle', '--');
          end
@@ -196,31 +198,25 @@ for n = 1 : nJobs
         
     end
 
-end % End if  Job
+end % End if  
 
-% Release the plot hold.
 hold off;
 
-% Legend
 L = legend(legend_entries);
 set(L, 'FontSize', 10);
-set(L, 'location', 'SouthEast');
+set(L, 'location', 'NorthWest');
 axis square
 
-% Plot limits
-xlim([0, 1]);
-ylim([0, 1]);
+% xlim([0, 0.1]);
+% ylim([0 1]);
 
-% Label plot
 title({'CDF of displacement error for different', ...
     ['processing schemes, ' num2str(regionHeight) 'x' ...
     num2str(regionWidth) ' regions'], ...
-    '|T_x| and |T_y| < 0.5 pix, |T_z| = 0 pix'}, 'FontSize', ...
-    fSize, 'interpreter', 'tex');
+    '|T_x| and |T_y| < 5 pix'}, 'FontSize', fSize);
 xlabel('Translation error magnitude (pix)', 'FontSize', fSize);
 ylabel('Cumulative probability', 'FontSize', fSize);
 
-% Set plot axes font size.
 set(gca, 'fontsize', fSize);
 
 end

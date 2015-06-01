@@ -1,25 +1,25 @@
 
 % Input data directory
-input_dir = '~/Desktop/schlieren_test_06/tiff';
+input_dir = '/Users/matthewgiarra/Desktop/confocal/spc_test_images/SLIC_Experimental_Data_100ums';
 
 % Input data base name
-input_base_name = 'schlieren_test_06_';
+input_base_name = 'Resonant_100ums_';
 
 % Input data number format
-num_format = '%06d';
+num_format = '%04d';
 
 % Input data extension
-input_extension = '.tiff';
+input_extension = '.bmp';
 
 % Grid point location (just a single grid point)
-grid_row = 400;
-grid_col = 400;
+grid_row = 64;
+grid_col = 256;
 
 % Start image
-start_image = 1000;
+start_image = 0;
 
 % End image
-end_image = 1499;
+end_image = 999;
 
 % Frame step
 frame_step = 1;
@@ -133,11 +133,11 @@ spectral_phase_plane = fftshift(phaseOnlyFilter(cross_correlation));
 % Extract the phase angle from the phase plane
 phase_angle_plane = angle(spectral_phase_plane);
 
-% Calculate the displacement from the SPC plane fit
-[v_spc, u_spc, coeffs] = spc_plane_fit(angle(spectral_phase_plane), ...
-    plane_fit_weights);
-
-z = polyval2(coeffs,x,y);
+% % Calculate the displacement from the SPC plane fit
+% [v_spc, u_spc, coeffs] = spc_plane_fit(angle(spectral_phase_plane), ...
+%     plane_fit_weights);
+% 
+% z = polyval2(coeffs,x,y);
 
 figure(1);
 % Plot the phase angle plane

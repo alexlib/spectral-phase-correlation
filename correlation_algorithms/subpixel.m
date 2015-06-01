@@ -9,6 +9,10 @@ cc_y = -floor(CORRELATION_HEIGHT/2):ceil(CORRELATION_HEIGHT/2)-1;
 %find maximum correlation value
 [M,I] = max(SPATIAL_CORRELATION_PLANE(:));
 
+% Allocate the peak angle and eccentricity.
+PEAK_ANGLE = 0;
+PEAK_ECCENTRICITY = 0;
+
 % Use 4 standard deviations for the peak sizing (e^-2)
 sigma = 4;
 
