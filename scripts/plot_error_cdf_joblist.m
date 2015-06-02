@@ -173,17 +173,20 @@ for n = 1 : nJobs
          
          % Load the results path
          load(results_path);
+        
+         % Read the true Z translation
+         TZ_TRUE = Parameters.TranslationZ;
          
          % Calculate the error of each component of the disp. estimate
          tx_err = TX_EST - TX_TRUE;
          ty_err = TY_EST - TY_TRUE;
-         
+        
          % Calculate the magnitude of the error.
          tx_err_mag = sqrt(tx_err.^2 + ty_err.^2);
          
          % Create a CDF plot of the error magnitude
          p = cdfplot(tx_err_mag);
-         set(p, 'linewidth', 1);
+         set(p, 'linewidth', 2);
          
          % Make lines dashed if there are more than seven
          % of them.
@@ -208,14 +211,20 @@ set(L, 'location', 'SouthEast');
 axis square
 
 % Plot limits
-xlim([0, 1]);
-ylim([0, 1]);
+xlim([0, 0.1]);
+ylim([0, 1.0]);
+
+tx_mag_max = max(abs(TX_TRUE));
+ty_mag_max = max(abs(TY_TRUE));
+tz_mag_max = max(abs(TZ_TRUE));
 
 % Label plot
 title({'CDF of displacement error for different', ...
     ['processing schemes, ' num2str(regionHeight) 'x' ...
     num2str(regionWidth) ' regions'], ...
-    '|T_x| and |T_y| < 0.5 pix, |T_z| = 0 pix'}, 'FontSize', ...
+    ['|T_x| < ' num2str(tx_mag_max, '%0.0f') ' pix, ' ...
+    '|T_y| < ' num2str(ty_mag_max, '%0.0f') ' pix, ' ...
+    '|T_z| < ' num2str(tz_mag_max, '%0.0f') ' pix']}, 'FontSize', ...
     fSize, 'interpreter', 'tex');
 xlabel('Translation error magnitude (pix)', 'FontSize', fSize);
 ylabel('Cumulative probability', 'FontSize', fSize);
