@@ -19,14 +19,14 @@ num_format = '%06d';
 input_extension = '.tif';
 
 % Grid point location (just a single grid point)
-grid_row = 420;
-grid_col = 500;
+grid_row = 570;
+grid_col = 550;
 
 % Start image
 start_image = 400;
 
 % End image
-end_image = 400;
+end_image = 499;
 
 % Frame step
 frame_step = 1;
@@ -38,15 +38,14 @@ correlation_step = 1;
 region_height = 64;
 region_width = 64;
 
+% Minimum dimension
+min_dim = min([region_width, region_height]);
+
 % Window fractions
 window_fraction = [0.5, 0.5];
 
 % Correlation method
 correlation_method = 'scc';
-
-% Cutoff radius
-rc_outer = 8;
-rc_inner = 3;
 
 % Coordinates
 [x, y] = meshgrid(1 : region_width, 1 : region_height);
@@ -57,11 +56,6 @@ yc = region_width  / 2 + 1;
 
 % Angular coordinates
 [~, r] = cart2pol(x - xc, y - yc);
-
-% Weighting filter
-plane_fit_weights = ones(size(x));
-plane_fit_weights(r > rc_outer) = 0;
-plane_fit_weights(r < rc_inner) = 0;
 
 % First image numbers
 image_numbers_01 = start_image : frame_step : end_image;
@@ -135,11 +129,56 @@ for k = 1 : num_images
     
 end
 
+    
 % Extract the phase from the ensemble cross correlation plane
 spectral_phase_plane = (phaseOnlyFilter(cross_correlation));
 
 % SCC plane
 scc_plane = fftshift(abs(real(ifft2(cross_correlation))));
+
+% % Loop over the filters
+% for k = 0 : 1 : round(max(r(:)))
+%     
+%     % Weighting filter
+%     plane_fit_weights = zeros(size(x));
+% 
+%     % Cutoff radius
+%     r_cutoff = max(r(:)) - k;
+% 
+%     % Plane fit weights
+%     plane_fit_weights(r < r_cutoff) = 1;
+% 
+%     % Filtered phase plane
+%     spectral_phase_plane_filtered = ...
+%         fftshift(plane_fit_weights) .* spectral_phase_plane;
+%     
+%     % GCC plane
+%     gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane_filtered))));
+%  
+% %     % Extract the phase angle from the phase plane
+% %     phase_angle_plane = fftshift(angle(spectral_phase_plane_filtered));
+% 
+% %     % svd_plane
+% %     svd_plane = fftshift(angle(...
+% %         svd_phase_filter_2D(spectral_phase_plane_filtered, 1)));
+%     
+%     % Plots
+%     subplot(1, 2, 1)
+%     imagesc(fftshift(angle(spectral_phase_plane_filtered)));
+%     axis image;
+%     title('Phase angle', 'FontSize', 20);
+%     
+%     subplot(1, 2, 2); 
+%     mesh(gcc_plane ./ max(gcc_plane(:)), 'edgecolor', 'black');
+%     title('GCC', 'FontSize', 20');
+%     pbaspect([1, 1, 0.6]);
+%     set(gca, 'view', [-29.5000   12.0000]);
+%     
+%     pause(0.25);
+%     
+% 
+% end
+
 
 % GCC plane
 gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane))));
@@ -148,8 +187,10 @@ gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane))));
 phase_angle_plane = fftshift(angle(spectral_phase_plane));
 
 % svd_plane
-svd_plane = fftshift(angle(svd_phase_filter_2D(spectral_phase_plane, 1)));
+svd_plane = fftshift(angle(...
+    svd_phase_filter_2D(spectral_phase_plane, 1)));
 
+figure(1);
 % Plot them
 subplot(2, 2, 1);
 mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
@@ -206,7 +247,16 @@ title('Phase angle (SVD)', 'FontSize', 20);
 
 
 
+figure(2);
+% Plot them
+mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
+pbaspect([1, 1, 0.6]);
+set(gca, 'view', [-29.5000   12.0000]);
+axis off
 
+figure_name = sprintf('schlieren_ensemble_row_%d_col_%d.eps',grid_row,grid_col);
+figure_path = fullfile('~/Desktop', figure_name);
+print(2, '-deps', figure_path);
 
 
 
