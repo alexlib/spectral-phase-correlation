@@ -4,43 +4,71 @@
 region_height = 128;
 region_width = 128;
 
-
-
 % Create coordinates
 [u, v] = meshgrid(1 : region_width, 1 : region_height);
 
 % Pixel Shifts
 sy = 1;
+sx = 2;
 
-sx_range = -3 : 0.1 : 3;
 
-n_cases = length(sy_range);
+% Centroid locations
+uc = region_width/2;
+vc = region_height/2;
 
-for k = 1 : n_cases
+% Gaussian noise window std dev
+std = region_height / 4;
 
-	sx = sx_range(k);
-	sy = sx;
+% Noise scale
+noise_scale = 1;
 
-	% Calculate complex function
-	complex_phase = exp(-1i*2*pi*(sx/region_width * u + sy / region_height * v));
+% Std scale
+std_dev_scale = 1.5;
 
-	% Calculate the wrapped phase difference
-	wrapped_diff = wrapped_phase_difference(angle(complex_phase), 2);
+% Standard deviations
+std_x = std_dev_scale * region_width/4;
+std_y = std_dev_scale * region_height/4;
 
-	% Plot the wrapped phase
-	subplot(1, 2, 1);
-	imagesc(angle(complex_phase));
-	axis image;
-	title('Wrapped phase', 'FontSize', 20);
+% Gaussian
+g = 1 - exp(-(u - uc).^2 / (std_x)^2 ...
+		-(v - vc).^2 / (std_y)^2);
+		
+% Create noise
+noise_real = 	  noise_scale * g .* randn([region_height, region_width]);
+noise_imag = 1i * noise_scale * g .* randn([region_height, region_width]);
 
-	% Plot the wrapped phase difference
-	subplot(1, 2, 2);
-	mesh(wrapped_diff);
-	axis image;
-	title('Wrapped phase difference', 'FontSize', 20);
-	zlim(0.5 * [-1, 1]);
-	axis square
+% Calculate complex function
+complex_phase = exp(-1i*2*pi*(sx/region_width * u + sy / region_height * v)) + noise_real + noise_imag;
 
-	pause(0.005)
+% Phase angle
+phase_angle = angle(complex_phase);
 
-end
+% Phase quality
+phase_quality = calculate_phase_quality(phase_angle, 1);
+
+subplot(1, 3, 1);
+mesh(g);
+title('Noise window', 'FontSize', 20);
+
+% Mesh plot
+subplot(1, 3, 2);
+imagesc(phase_angle);
+axis image;
+title('Phase angle', 'FontSize', 20);
+
+subplot(1, 3, 3);
+mesh(phase_quality(2 : end - 1, 2 : end - 1));
+axis square;
+title('Phase quality', 'FontSize', 20)
+
+
+
+
+
+
+
+
+
+
+
+
