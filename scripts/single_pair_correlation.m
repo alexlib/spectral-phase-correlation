@@ -54,7 +54,7 @@ xc = region_height / 2 + 1 - mod(region_height, 2);
 yc = region_height / 2 + 1 - mod(region_height, 2);
 
 % Loop over images
-for k = num_images : num_images;
+for k = 1 : 10;
 	
 	% Load the images
 	region_01_raw = double(imageMatrix1(:, :, k));
@@ -66,6 +66,12 @@ for k = num_images : num_images;
 
 	% phase correlation
 	phase_corr_spectral = phaseCorrelation(region_01, region_02);
+	
+	% Filter the phase corr
+	% phase_corr_filtered = phase_median_filter(phase_corr_spectral, [5, 5]);
+	
+	% Phase quality
+	phase_quality = calculate_phase_quality_mex(angle(fftshift(phase_corr_spectral)), 1);
 
 	% Real part of the phase correlation
 	real_phase_corr = fftshift(real(phase_corr_spectral));
@@ -101,18 +107,18 @@ for k = num_images : num_images;
 	hold off;
 	axis off;
 	title('Region', 'FontSize', 12);
-	
-	% Plot
+
 	subplot(1, 4, 2);
-	imagesc(real_phase_corr); axis image;
-	axis off
-	title('Real part of phase', 'FontSize', 12);
-
-
-	subplot(1, 4, 3);
 	imagesc(spc_spectral); axis image;
 	title('SPC plane', 'fontsize', 12);
 	axis off
+	
+	subplot(1, 4, 3);
+	imagesc((phase_quality(2 : end - 1, 2 : end - 1)));
+	axis image;
+	axis off
+	title('Phase quality', 'FontSize', 12);
+	caxis([0, 1]);
 	
 	subplot(1, 4, 4); 
 	mesh(gcc_plot ./ max(gcc_plot(:)), 'edgecolor', 'black');

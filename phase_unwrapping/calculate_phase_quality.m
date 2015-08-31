@@ -23,17 +23,16 @@ row_max = array_height - kernel_radius;
 % Allocate the phase quality array
 phase_quality_array = zeros(array_height, array_width);
 
-% keyboard
-
 % Loop over the rows
 for m = row_min : row_max
 	for n = col_min : col_max
 		
-		try
-		
 		% Extract the sub-region of phase differences
-		row_diffs = phase_diff_rows(m - kernel_radius : m + kernel_radius, n - kernel_radius : n + kernel_radius);
-		col_diffs = phase_diff_cols(m - kernel_radius : m + kernel_radius, n - kernel_radius : n + kernel_radius);
+		row_diffs = phase_diff_rows(m - kernel_radius : m + kernel_radius,...
+		 n - kernel_radius : n + kernel_radius);
+		 
+		col_diffs = phase_diff_cols(m - kernel_radius : m + kernel_radius,...
+		 n - kernel_radius : n + kernel_radius);
 		
 		% Standard deviations
 		% The 1 indicates normalization by N, not by N-1
@@ -42,11 +41,6 @@ for m = row_min : row_max
 		
 		% Populate the phase quality array
 		phase_quality_array(m, n) = row_diff_std + col_diff_std;
-		
-		
-	catch
-		keyboard
-	end
 		
 	end
 end

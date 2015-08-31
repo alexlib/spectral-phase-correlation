@@ -6,7 +6,7 @@ addpath phase_unwrapping/
 addpath jobfiles/
 
 % Input data directory
-input_dir = '/Users/matthewgiarra/Desktop/schlieren';
+input_dir = '/Users/matthewgiarra/Desktop/tiff';
 
 % Input data base name
 % input_base_name = 'mng-2-069-E_';
@@ -16,7 +16,7 @@ input_base_name = 'schlieren_test_06_';
 num_format = '%06d';
 
 % Input data extension
-input_extension = '.tif';
+input_extension = '.tiff';
 
 % Grid point location (just a single grid point)
 grid_row = 420;
@@ -26,7 +26,7 @@ grid_col = 500;
 start_image = 400;
 
 % End image
-end_image = 400;
+end_image = 450;
 
 % Frame step
 frame_step = 1;
@@ -147,8 +147,8 @@ gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane))));
 % Extract the phase angle from the phase plane
 phase_angle_plane = fftshift(angle(spectral_phase_plane));
 
-% svd_plane
-svd_plane = fftshift(angle(svd_phase_filter_2D(spectral_phase_plane, 1)));
+% Phase quality
+phase_quality = calculate_phase_quality_mex(phase_angle_plane, 1);
 
 % Plot them
 subplot(2, 2, 1);
@@ -156,12 +156,16 @@ mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
 title('SCC', 'FontSize', 20');
 pbaspect([1, 1, 0.6]);
 set(gca, 'view', [-29.5000   12.0000]);
+xlim([1, region_width]);
+ylim([1, region_height]);
 
 subplot(2, 2, 2); 
 mesh(gcc_plane ./ max(gcc_plane(:)), 'edgecolor', 'black');
 title('GCC', 'FontSize', 20');
 pbaspect([1, 1, 0.6]);
 set(gca, 'view', [-29.5000   12.0000]);
+xlim([1, region_width]);
+ylim([1, region_height]);
 
 subplot(2, 2, 3)
 imagesc(phase_angle_plane);
@@ -169,10 +173,9 @@ axis image;
 title('Phase angle', 'FontSize', 20);
 
 subplot(2, 2, 4)
-mesh(svd_plane, 'edgecolor', 'black');
-pbaspect([1, 1, 0.6]);
-set(gca, 'view', [-29.5000   12.0000]);
-title('Phase angle (SVD)', 'FontSize', 20);
+imagesc(phase_quality(2 : end - 1, 2 : end - 1));
+axis image;
+title('Phase quality', 'FontSize', 20);
 
 
 % % Zero the parts of the phase plane that are outsize the cutoff radius

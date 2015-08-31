@@ -1,4 +1,5 @@
-% Create an array
+% Font size
+fSize = 12;
 
 % Region size
 region_height = 128;
@@ -8,9 +9,8 @@ region_width = 128;
 [u, v] = meshgrid(1 : region_width, 1 : region_height);
 
 % Pixel Shifts
-sy = 1;
-sx = 2;
-
+sy = 4;
+sx = 4;
 
 % Centroid locations
 uc = region_width/2;
@@ -44,22 +44,27 @@ complex_phase = exp(-1i*2*pi*(sx/region_width * u + sy / region_height * v)) + n
 phase_angle = angle(complex_phase);
 
 % Phase quality
-phase_quality = calculate_phase_quality(phase_angle, 1);
+phase_quality = calculate_phase_quality_mex(phase_angle, 1);
 
 subplot(1, 3, 1);
-mesh(g);
-title('Noise window', 'FontSize', 20);
+imagesc(g);
+title('Noise window', 'FontSize', fSize);
+axis square
+axis off
 
 % Mesh plot
 subplot(1, 3, 2);
 imagesc(phase_angle);
 axis image;
-title('Phase angle', 'FontSize', 20);
+title('Phase angle', 'FontSize', fSize);
+axis off
 
 subplot(1, 3, 3);
-mesh(phase_quality(2 : end - 1, 2 : end - 1));
+imagesc(phase_quality(2 : end - 1, 2 : end - 1));
 axis square;
-title('Phase quality', 'FontSize', 20)
+title('Phase quality (blue is better)', 'FontSize', fSize)
+% caxis([0, 1]);
+axis off
 
 
 
