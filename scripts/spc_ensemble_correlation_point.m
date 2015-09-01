@@ -153,6 +153,12 @@ phase_quality = calculate_phase_quality_mex(phase_angle_plane, 1);
 % Calculate the phase mask
 phase_mask = calculate_phase_regions(phase_angle_plane, 0.9);
 
+% Multiply the phase mask by the complex cross correlation.
+filtered_spectral_phase_plane = fftshift(phase_mask) .* spectral_phase_plane;
+
+% Filtered GCC
+filtered_gcc = fftshift(abs(real(ifft2(filtered_spectral_phase_plane))));
+
 % Plot them
 subplot(2, 2, 1);
 mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
