@@ -26,7 +26,7 @@ grid_col = 500;
 start_image = 400;
 
 % End image
-end_image = 450;
+end_image = 800;
 
 % Frame step
 frame_step = 1;
@@ -150,11 +150,14 @@ phase_angle_plane = fftshift(angle(spectral_phase_plane));
 % Phase quality
 phase_quality = calculate_phase_quality_mex(phase_angle_plane, 1);
 
+% Calculate the phase mask
+phase_mask = calculate_phase_regions(phase_angle_plane, 0.9);
+
 % Plot them
 subplot(2, 2, 1);
 mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
 title('SCC', 'FontSize', 20');
-pbaspect([1, 1, 0.6]);
+pbaspect([1, 1, 1]);
 set(gca, 'view', [-29.5000   12.0000]);
 xlim([1, region_width]);
 ylim([1, region_height]);
@@ -162,7 +165,7 @@ ylim([1, region_height]);
 subplot(2, 2, 2); 
 mesh(gcc_plane ./ max(gcc_plane(:)), 'edgecolor', 'black');
 title('GCC', 'FontSize', 20');
-pbaspect([1, 1, 0.6]);
+pbaspect([1, 1, 1]);
 set(gca, 'view', [-29.5000   12.0000]);
 xlim([1, region_width]);
 ylim([1, region_height]);

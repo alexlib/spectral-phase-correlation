@@ -10,8 +10,8 @@ phase_diff_cols = wrapped_phase_difference(wrapped_phase_angle, 2);
 [M, N] = size(wrapped_phase_angle);
 
 % Array height and width
-array_height = M - 1;
-array_width  = N - 1;
+array_height = M;
+array_width  = N;
 
 % Min and maxes of rows and columns
 col_min = 1 + kernel_radius;
@@ -45,5 +45,10 @@ for m = row_min : row_max
 	end
 end
 	
-	
 end
+
+
+
+
+
+

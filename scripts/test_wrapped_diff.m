@@ -44,7 +44,9 @@ complex_phase = exp(-1i*2*pi*(sx/region_width * u + sy / region_height * v)) + n
 phase_angle = angle(complex_phase);
 
 % Phase quality
-phase_quality = calculate_phase_quality_mex(phase_angle, 1);
+% phase_quality = calculate_phase_quality_mex(phase_angle, 1);
+
+PHASE_MASK = calculate_phase_regions(wrapped_phase_angle_plane, 1);
 
 subplot(1, 3, 1);
 imagesc(g);
