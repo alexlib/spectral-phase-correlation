@@ -5,12 +5,18 @@ addpath filtering/
 addpath phase_unwrapping/
 addpath jobfiles/
 
+% Plot font size
+fSize = 12;
+
+% Phase mask threshold
+phase_mask_threshold = 0.9;
+
 % Input data directory
-input_dir = '/Users/matthewgiarra/Desktop/tiff';
+input_dir = '/Users/matthewgiarra/Desktop/xray_tiff';
 
 % Input data base name
 % input_base_name = 'mng-2-069-E_';
-input_base_name = 'schlieren_test_06_';
+input_base_name = 'mng-2-069-E_';
 
 % Input data number format
 num_format = '%06d';
@@ -19,14 +25,14 @@ num_format = '%06d';
 input_extension = '.tiff';
 
 % Grid point location (just a single grid point)
-grid_row = 420;
-grid_col = 500;
+grid_row = 512;
+grid_col = 512;
 
 % Start image
-start_image = 400;
+start_image = 0;
 
 % End image
-end_image = 800;
+end_image = 10;
 
 % Frame step
 frame_step = 1;
@@ -43,10 +49,6 @@ window_fraction = [0.5, 0.5];
 
 % Correlation method
 correlation_method = 'scc';
-
-% Cutoff radius
-rc_outer = 8;
-rc_inner = 3;
 
 % Coordinates
 [x, y] = meshgrid(1 : region_width, 1 : region_height);
@@ -147,11 +149,8 @@ gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane))));
 % Extract the phase angle from the phase plane
 phase_angle_plane = fftshift(angle(spectral_phase_plane));
 
-% Phase quality
-phase_quality = calculate_phase_quality_mex(phase_angle_plane, 1);
-
 % Calculate the phase mask
-phase_mask = calculate_phase_regions(phase_angle_plane, 0.9);
+[phase_mask, phase_quality] = calculate_phase_mask(phase_angle_plane, phase_mask_threshold);
 
 % Multiply the phase mask by the complex cross correlation.
 filtered_spectral_phase_plane = fftshift(phase_mask) .* spectral_phase_plane;
@@ -160,31 +159,51 @@ filtered_spectral_phase_plane = fftshift(phase_mask) .* spectral_phase_plane;
 filtered_gcc = fftshift(abs(real(ifft2(filtered_spectral_phase_plane))));
 
 % Plot them
-subplot(2, 2, 1);
+subplot(2, 3, 1);
+imagesc(phase_angle_plane); 
+axis image
+axis off;
+title('Raw phase angle plane', 'FontSize', fSize);
+
+subplot(2, 3, 2);
+imagesc(phase_quality);
+axis image
+axis off
+title({'Phase quality' '(blue is better)'}, 'FontSize', fSize);
+
+subplot(2, 3, 3);
+imagesc(phase_mask);
+axis image;
+axis off
+title({'Phase mask', '(blue regions rejected)'});
+
+subplot(2, 3, 4);
 mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
-title('SCC', 'FontSize', 20');
+title('SCC', 'FontSize', fSize);
 pbaspect([1, 1, 1]);
+axis off
 set(gca, 'view', [-29.5000   12.0000]);
 xlim([1, region_width]);
 ylim([1, region_height]);
 
-subplot(2, 2, 2); 
+subplot(2, 3, 5); 
 mesh(gcc_plane ./ max(gcc_plane(:)), 'edgecolor', 'black');
-title('GCC', 'FontSize', 20');
+title('Unflitered GCC', 'FontSize', fSize);
 pbaspect([1, 1, 1]);
+axis off
 set(gca, 'view', [-29.5000   12.0000]);
 xlim([1, region_width]);
 ylim([1, region_height]);
 
-subplot(2, 2, 3)
-imagesc(phase_angle_plane);
-axis image;
-title('Phase angle', 'FontSize', 20);
+subplot(2, 3, 6)
+mesh(filtered_gcc ./ max(filtered_gcc(:)), 'EdgeColor', 'Black');
+title('Filtered GCC', 'FontSize', fSize);
+pbaspect([1, 1, 1]);
+axis off
+set(gca, 'view', [-29.5000   12.0000]);
+xlim([1, region_width]);
+ylim([1, region_height]);
 
-subplot(2, 2, 4)
-imagesc(phase_quality(2 : end - 1, 2 : end - 1));
-axis image;
-title('Phase quality', 'FontSize', 20);
 
 
 % % Zero the parts of the phase plane that are outsize the cutoff radius

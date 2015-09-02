@@ -7,6 +7,9 @@ addpath ../jobfiles/
 
 % close all
 
+% Plot font size
+fSize = 12;
+
 % Image number
 % image_num = 1;
 
@@ -22,8 +25,8 @@ image_file_name = ['raw_image_matrix_' case_name '.mat'];
 % Parameters file name
 parameters_file_name = ['imageParameters_' case_name '.mat'];
 
-% imageMatrix1 = img_01;
-% imageMatrix2 = img_02;
+% Threshold for im2bw operation in the phase quality thresholding operation
+phase_mask_threshold = 0.9;
 
 % Path to the raw image matrix
 image_file_path = fullfile(file_dir, 'raw', image_file_name);
@@ -45,16 +48,20 @@ g = gaussianWindowFilter([region_height, region_width], [0.5, 0.5], ...
 % Mesh plot skipping
 Skip = 1;
 
-% Measure the shearing
-shear_x = Parameters.ShearX;
-shear_y = Parameters.ShearY;
-
 % Zero frequency pixel
 xc = region_height / 2 + 1 - mod(region_height, 2);
 yc = region_height / 2 + 1 - mod(region_height, 2);
 
+
+phase_mask_threshold = 0.3;
+
+img_num = 19;
+
 % Loop over images
-for k = 1 : 10;
+for k = img_num : img_num;
+	
+	% Inform the user
+	fprintf('On image %d of %d...\n', k, num_images);
 	
 	% Load the images
 	region_01_raw = double(imageMatrix1(:, :, k));
@@ -63,64 +70,80 @@ for k = 1 : 10;
 	% Windowed regions
 	region_01 = (region_01_raw - mean(region_01_raw(:))) .* g;
 	region_02 = (region_02_raw - mean(region_02_raw(:))) .* g;
+	
+	% Standard CC
+	scc_spectral = crossCorrelation(region_01, region_02);
 
 	% phase correlation
-	phase_corr_spectral = phaseCorrelation(region_01, region_02);
+	phase_corr_spectral = fftshift(phaseCorrelation(region_01, region_02));
 	
-	% Filter the phase corr
-	% phase_corr_filtered = phase_median_filter(phase_corr_spectral, [5, 5]);
+	% Median filter the phase correlation
+	phase_corr_mean = phase_mean_filter(phase_corr_spectral, [5, 5]);
 	
-	% Phase quality
-	phase_quality = calculate_phase_quality_mex(angle(fftshift(phase_corr_spectral)), 1);
-
-	% Real part of the phase correlation
-	real_phase_corr = fftshift(real(phase_corr_spectral));
-
+	% Wrapped phase angle plane
+	wrapped_phase_angle_plane = angle(phase_corr_mean);
+	
+	% Calculate the phase quality and the resulting phase mask.
+	[phase_mask, phase_quality] = ...
+	calculate_phase_mask(wrapped_phase_angle_plane, phase_mask_threshold);
+	
 	% Phase angle plane
-	spc_spectral = fftshift(angle(phase_corr_spectral));
+	spc_spectral = angle(phase_corr_spectral);
 
-	% Invert the FT
+	% Invert the FT of the SCC
+	scc = fftshift(abs(real(ifftn(scc_spectral))));
+
+	% Invert the FT of the GCC
 	gcc = fftshift(abs(real(ifftn(phase_corr_spectral,...
 	    [region_height, region_width]))));
+		
+	% Invert the FT of the APC
+	apc = fftshift(abs(real(ifftn(phase_mask .* phase_corr_spectral,...
+	    [region_height, region_width]))));
 
-	% gcc to plot
+	% SCC to plot
+	scc_plot = scc(1 : Skip : end, 1 : Skip : end);
+
+	% GCC to plot
 	gcc_plot = gcc(1 : Skip : end, 1 : Skip : end);
 	
-	% Extract the shears
-	sx = shear_x(k);
-	sy = shear_y(k);
-	
-	% x_right 
-	x_01  =  -region_height/2 * sx + xc;
-	x_02 =  region_height/2 * sx + xc;
-	
-	y_01 = 1;
-	y_02 = region_height;
-
-	% Plot
-
-	subplot(1, 4, 1);
-	imagesc(region_02_raw);
-	axis image;
-	hold on;
-	plot([x_01, x_02], [y_01, y_02], '-y');
-	hold off;
-	axis off;
-	title('Region', 'FontSize', 12);
-
-	subplot(1, 4, 2);
+	% APC to plot
+	apc_plot = apc(1 : Skip : end, 1 : Skip : end);
+		
+	% Plot the phase angle plane.
+	subplot(2, 3, 1);
 	imagesc(spc_spectral); axis image;
-	title('SPC plane', 'fontsize', 12);
+	title('SPC plane', 'fontsize', fSize);
 	axis off
 	
-	subplot(1, 4, 3);
+	% Plot the phase quality.
+	subplot(2, 3, 2);
 	imagesc((phase_quality(2 : end - 1, 2 : end - 1)));
 	axis image;
 	axis off
-	title('Phase quality', 'FontSize', 12);
+	title('Phase quality', 'FontSize', fSize);
 	caxis([0, 1]);
 	
-	subplot(1, 4, 4); 
+	% Plot the phase mask.
+	subplot(2, 3, 3); 
+	imagesc(phase_mask);
+	axis image;
+	axis off
+	title({'Phase mask', ['Threshold = '...
+	 num2str(phase_mask_threshold, '%0.2f')]}, ...
+	 'FontSize', fSize)
+	
+	% Plot the SCC.
+	subplot(2, 3, 4);
+	mesh(scc_plot ./ max(scc_plot(:)), 'EdgeColor', 'black');
+	axis square
+	xlim([0, region_width]);
+	ylim([0, region_height]);
+	axis off
+	title('SCC', 'FontSize', 12)
+	
+	 % Plot the GCC.
+	subplot(2, 3, 5);
 	mesh(gcc_plot ./ max(gcc_plot(:)), 'edgecolor', 'black');
 	axis square;
 	% xlim([0, region_width/2 - 1]);
@@ -129,6 +152,17 @@ for k = 1 : 10;
 	ylim([0, region_height]);
 	axis off
 	title('GCC', 'FontSize', 12)
+	
+	% Plot the APC.
+	subplot(2, 3, 6); 
+	mesh(apc_plot ./ max(apc_plot(:)), 'edgecolor', 'black');
+	axis square;
+	% xlim([0, region_width/2 - 1]);
+	% ylim([0, region_height/2 - 1]);
+	xlim([0, region_width]);
+	ylim([0, region_height]);
+	axis off
+	title('APC', 'FontSize', 12)
 	
 	% Pause
 	pause(0.25)
