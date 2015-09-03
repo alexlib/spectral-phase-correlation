@@ -1,5 +1,6 @@
-function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_plane, threshold)
-	
+function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_plane)
+	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
+		
 	% Measure size
 	[region_height, region_width] = size(wrapped_phase_angle_plane);
 	
@@ -17,8 +18,14 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_
 	% Compute the phase quality map
 	PHASE_QUALITY = calculate_phase_quality_mex(wrapped_phase_angle_plane, 1);
 	
-	% Threshold the phase quality map
-	phase_quality_bw = im2bw(PHASE_QUALITY, threshold);
+	% Threshold the phase quality map using histogram equalization
+	phase_quality_bw = imfill(histeq(PHASE_QUALITY, 2));
+	
+	% Set border pixels to 1 to prevent connecting regions via the border
+	phase_quality_bw(1, :) = 1;
+	phase_quality_bw(end, :) = 1;
+	phase_quality_bw(:, 1) = 1;
+	phase_quality_bw(:, end) = 1;
 	
 	% Find properties of all the connected regions in the thresholded image. 
 	phase_quality_region_props = regionprops(~phase_quality_bw, 'Centroid', 'PixelIdxList');
@@ -30,8 +37,11 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_
 	% of the radial coordinates of each region.
 	region_weighted_centroid_radial = zeros(num_regions, 1);
 	
+	% Allocate a vector to hold the centroids of the detected regions
 	region_centroid_radial = zeros(num_regions, 1);
 	
+	% Allocate a vector to hold the mean values of the radial coordinates
+	% of the pixels comprising the detected regions.
 	region_radius_median = zeros(num_regions, 1);
 	
 	% Measure the median radial coordinate of each region
@@ -69,6 +79,9 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_
 	PHASE_MASK(:, end) = 0;
 	PHASE_MASK(1, :) = 0;
 	PHASE_MASK(end, :) = 0;
+	
+	% Fill the holes
+	PHASE_MASK = imfill(PHASE_MASK);
 	
 end
 

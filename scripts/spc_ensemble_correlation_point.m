@@ -1,4 +1,3 @@
-
 % Add paths
 addpath correlation_algorithms/
 addpath filtering/
@@ -8,41 +7,42 @@ addpath jobfiles/
 % Plot font size
 fSize = 12;
 
-% Phase mask threshold
-phase_mask_threshold = 0.9;
-
 % Input data directory
+% input_dir = '/Users/matthewgiarra/Desktop/ts3_000014';
 input_dir = '/Users/matthewgiarra/Desktop/xray_tiff';
 
 % Input data base name
-% input_base_name = 'mng-2-069-E_';
+% input_base_name = 'frame_';
 input_base_name = 'mng-2-069-E_';
 
-% Input data number format
-num_format = '%06d';
+% Number of digits in the file names.
+num_digits = 6; 
 
 % Input data extension
 input_extension = '.tiff';
 
 % Grid point location (just a single grid point)
-grid_row = 512;
-grid_col = 512;
+grid_col = 500;
+grid_row = 500;
 
 % Start image
 start_image = 0;
 
 % End image
-end_image = 10;
+end_image = 100;
 
 % Frame step
 frame_step = 1;
+
+% Color channel to correlate
+color_channel = 1;
 
 % Correlation step
 correlation_step = 1;
 
 % Region size
-region_height = 64;
-region_width = 64;
+region_height = 128;
+region_width = 128;
 
 % Window fractions
 window_fraction = [0.5, 0.5];
@@ -59,11 +59,6 @@ yc = region_width  / 2 + 1;
 
 % Angular coordinates
 [~, r] = cart2pol(x - xc, y - yc);
-
-% Weighting filter
-plane_fit_weights = ones(size(x));
-plane_fit_weights(r > rc_outer) = 0;
-plane_fit_weights(r < rc_inner) = 0;
 
 % First image numbers
 image_numbers_01 = start_image : frame_step : end_image;
@@ -86,6 +81,9 @@ region_window = gaussianWindowFilter([region_height, region_width], ...
 
 % Allocate a correlation plane
 cross_correlation = zeros(region_height, region_width, 'double');
+
+% Input data number format
+num_format = ['%0' num2str(num_digits) 'd'];
 
 % Make file paths
 for k = 1 : num_images
@@ -113,13 +111,19 @@ for k = 1 : num_images
         
         % Read the first image
         img_01 = double(imread(file_path_01{k}));
-        
+		        
         % Read the second image
         img_02 = double(imread(file_path_02{k}));
-        
+		
+		% Size of images
+		[~, ~, num_channels] = size(img_01);
+		
         % Extract the parts of the image used in the correlation
-        region_01_raw = img_01(region_rows, region_cols); 
-        region_02_raw = img_02(region_rows, region_cols);
+        region_01_raw = img_01(region_rows, region_cols, ...
+	        min([color_channel, num_channels])); 
+			
+        region_02_raw = img_02(region_rows, region_cols, ...
+	        min([color_channel, num_channels]));
         
         % Zero-mean
         region_01 = region_01_raw - mean(region_01_raw(:));
@@ -150,7 +154,7 @@ gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane))));
 phase_angle_plane = fftshift(angle(spectral_phase_plane));
 
 % Calculate the phase mask
-[phase_mask, phase_quality] = calculate_phase_mask(phase_angle_plane, phase_mask_threshold);
+[phase_mask, phase_quality] = calculate_phase_mask(phase_angle_plane);
 
 % Multiply the phase mask by the complex cross correlation.
 filtered_spectral_phase_plane = fftshift(phase_mask) .* spectral_phase_plane;
