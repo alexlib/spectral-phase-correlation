@@ -22,8 +22,8 @@ num_digits = 6;
 input_extension = '.tiff';
 
 % Grid point location (just a single grid point)
-grid_col = 500;
-grid_row = 500;
+grid_col = 512;
+grid_row = 512;
 
 % Start image
 start_image = 0;
@@ -38,7 +38,7 @@ frame_step = 1;
 color_channel = 1;
 
 % Correlation step
-correlation_step = 1;
+correlation_step = 3;
 
 % Region size
 region_height = 128;
@@ -182,7 +182,7 @@ axis off
 title({'Phase mask', '(blue regions rejected)'});
 
 subplot(2, 3, 4);
-mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
+mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black', 'LineWidth', 1E-4);
 title('SCC', 'FontSize', fSize);
 pbaspect([1, 1, 1]);
 axis off
@@ -191,7 +191,7 @@ xlim([1, region_width]);
 ylim([1, region_height]);
 
 subplot(2, 3, 5); 
-mesh(gcc_plane ./ max(gcc_plane(:)), 'edgecolor', 'black');
+mesh(gcc_plane ./ max(gcc_plane(:)), 'edgecolor', 'black', 'LineWidth', 1E-4);
 title('Unflitered GCC', 'FontSize', fSize);
 pbaspect([1, 1, 1]);
 axis off
@@ -200,7 +200,7 @@ xlim([1, region_width]);
 ylim([1, region_height]);
 
 subplot(2, 3, 6)
-mesh(filtered_gcc ./ max(filtered_gcc(:)), 'EdgeColor', 'Black');
+mesh(filtered_gcc ./ max(filtered_gcc(:)), 'EdgeColor', 'black', 'LineWidth', 1E-4);
 title('Filtered GCC', 'FontSize', fSize);
 pbaspect([1, 1, 1]);
 axis off

@@ -19,7 +19,7 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_
 	PHASE_QUALITY = calculate_phase_quality_mex(wrapped_phase_angle_plane, 1);
 	
 	% Threshold the phase quality map using histogram equalization
-	phase_quality_bw = imfill(histeq(PHASE_QUALITY, 2));
+	phase_quality_bw = (histeq(PHASE_QUALITY, 2));
 	
 	% Set border pixels to 1 to prevent connecting regions via the border
 	phase_quality_bw(1, :) = 1;
