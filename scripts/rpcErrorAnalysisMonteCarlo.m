@@ -46,8 +46,8 @@ TY_EST = zeros(number_of_images, 1);
 TX_EST = zeros(number_of_images, 1);
 
 % Read the true translations, which will be saved to file.
-TY_TRUE = Parameters.TranslationY(image_numbers);
-TX_TRUE = Parameters.TranslationX(image_numbers);
+TY_TRUE = Parameters.Translation.Y(image_numbers);
+TX_TRUE = Parameters.Translation.X(image_numbers);
 
 % Create the 2-D spectral filter (i.e. RPC filter)
 rpc_spectral_filter = spectralEnergyFilter(region_height, region_width, spatial_rpc_diameter); % Raw image RPC spectral energy filter
@@ -63,7 +63,7 @@ if parallel_processing
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
         [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
-            spatial_window .* region_02, rpc_spectral_filter);       
+            spatial_window .* region_02, rpc_spectral_filter, 1);       
     end 
 else
     for k = 1 : number_of_images
@@ -75,7 +75,7 @@ else
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
         [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
-            spatial_window .* region_02, rpc_spectral_filter);       
+            spatial_window .* region_02, rpc_spectral_filter, 1);       
     end 
 end
  

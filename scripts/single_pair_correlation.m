@@ -14,19 +14,16 @@ fSize = 12;
 % image_num = 1;
 
 % Image directory
-file_dir = '/Users/matthewgiarra/Desktop/piv_images/analysis/data/synthetic/lin/test_images/128x128/raw/lin_h128_w128_00001/';
+file_dir = '/Users/matthewgiarra/Desktop/piv_test_images/analysis/data/synthetic/mc/piv_test_micro/128x128/raw/mc_h128_w128_00001/';
 
 % Case name
-case_name = 'lin_h128_w128_seg_000001_000050';
+case_name = 'mc_h128_w128_seg_000001_000100';
 
 % Name of the raw image matrkx
 image_file_name = ['raw_image_matrix_' case_name '.mat'];
 
 % Parameters file name
 parameters_file_name = ['imageParameters_' case_name '.mat'];
-
-% Threshold for im2bw operation in the phase quality thresholding operation
-phase_mask_threshold = 0.9;
 
 % Path to the raw image matrix
 image_file_path = fullfile(file_dir, 'raw', image_file_name);
@@ -42,7 +39,7 @@ load(parameters_file_path);
 [region_height, region_width, num_images] = size(imageMatrix1);
 
 % Make a Gaussian window. 
-g = gaussianWindowFilter([region_height, region_width], [0.5, 0.5], ...
+g = gaussianWindowFilter([region_height, region_width], [0.4, 0.4], ...
     'fraction');
 	
 % Mesh plot skipping
@@ -52,10 +49,7 @@ Skip = 1;
 xc = region_height / 2 + 1 - mod(region_height, 2);
 yc = region_height / 2 + 1 - mod(region_height, 2);
 
-
-phase_mask_threshold = 0.3;
-
-img_num = 19;
+img_num = 1;
 
 % Loop over images
 for k = img_num : img_num;
@@ -75,17 +69,17 @@ for k = img_num : img_num;
 	scc_spectral = crossCorrelation(region_01, region_02);
 
 	% phase correlation
-	phase_corr_spectral = fftshift(phaseCorrelation(region_01, region_02));
+	phase_corr_spectral = (phaseCorrelation(region_01, region_02));
 	
 	% Median filter the phase correlation
 	phase_corr_mean = phase_mean_filter(phase_corr_spectral, [5, 5]);
 	
 	% Wrapped phase angle plane
-	wrapped_phase_angle_plane = angle(phase_corr_mean);
+	wrapped_phase_angle_plane = fftshift(angle(phase_corr_spectral));
 	
 	% Calculate the phase quality and the resulting phase mask.
 	[phase_mask, phase_quality] = ...
-	calculate_phase_mask(wrapped_phase_angle_plane, phase_mask_threshold);
+	calculate_phase_mask(wrapped_phase_angle_plane);
 	
 	% Phase angle plane
 	spc_spectral = angle(phase_corr_spectral);

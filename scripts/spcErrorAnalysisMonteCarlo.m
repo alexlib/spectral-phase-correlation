@@ -33,6 +33,10 @@ spatial_rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter;
 % Zero mean images flag
 zero_mean_regions = JobFile.JobOptions.ZeroMeanRegions;
 
+% Read the phase filter list
+phase_filter_list = JobFile.Parameters.Processing.PhaseFilterList;
+phase_filter_kernel_size_list = JobFile.Parameters.Processing.KernelSizeList;
+
 % Load images
 load(image_file_path);
 
@@ -57,9 +61,8 @@ TY_EST = zeros(number_of_images, 1);
 TX_EST = zeros(number_of_images, 1);
 
 % Read the true translations, which will be saved to file.
-TY_TRUE = Parameters.TranslationY(image_numbers);
-TX_TRUE = Parameters.TranslationX(image_numbers);
-
+TY_TRUE = Parameters.Translation.Y(image_numbers);
+TX_TRUE = Parameters.Translation.X(image_numbers);
 
 % Create the spectral filters
 switch phase_unwrapping_method
@@ -161,8 +164,8 @@ switch phase_unwrapping_method
 
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
-                    phase_filter_type, phase_unwrapping_method, ...
-                    run_compiled);  
+                    phase_filter_list, phase_filter_kernel_size_list,...
+                    phase_unwrapping_method, run_compiled);    
             end  
         
         else
@@ -184,8 +187,8 @@ switch phase_unwrapping_method
 
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
-                    phase_filter_type, phase_unwrapping_method, ...
-                    run_compiled);   
+                    phase_filter_list, phase_filter_kernel_size_list,...
+                    phase_unwrapping_method, run_compiled);   
             end         
         end
 end

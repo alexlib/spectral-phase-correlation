@@ -95,7 +95,8 @@ for n = 1 : nJobs
         
         % Processing parameters specific to SPC
         phase_unwrapping_algorithm = JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm;
-        phase_filter_algorithm = JobFile.Parameters.Processing.PhaseFilterAlgorithm;
+        phase_filter_list = JobFile.Parameters.Processing.PhaseFilterList;
+        spc_plane_fit_weight_type = JobFile.Parameters.Processing.WeightedSpcPlaneFitMethod;
         
         % Base name of the saved file (SPC)
         saveBase = [...
@@ -104,8 +105,24 @@ for n = 1 : nJobs
             '_h' num2str(regionHeight)...
             '_w' num2str(regionWidth) ...
             '_unwrap_' lower(phase_unwrapping_algorithm)...
-            '_filt_' lower(phase_filter_algorithm) '_'];
-            
+            '_filt_'];
+        
+        % Append the list of phase filters to the save name
+        if isempty(phase_filter_list)
+            saveBase = strcat(saveBase, 'none_');
+        else
+            for k = 1 : length(phase_filter_list)
+               saveBase = strcat(saveBase, [lower(phase_filter_list{k}) '_']); 
+            end            
+        end
+        
+        % Append weighted plane weights
+        if isempty(spc_plane_fit_weight_type)
+            saveBase = strcat(saveBase, 'weights_none_');
+        else
+            saveBase = strcat(saveBase, ['weights_', lower(spc_plane_fit_weight_type) '_']);
+        end
+        
     else
         
         % Base name of the saved file (non-SPC)

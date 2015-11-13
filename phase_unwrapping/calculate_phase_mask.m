@@ -1,4 +1,5 @@
-function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_plane)
+function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(...
+    wrapped_phase_angle_plane, kernel_radius)
 	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
 		
 	% Measure size
@@ -16,10 +17,12 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(wrapped_phase_angle_
 	[~, r] = cart2pol(x - xc, y - yc);
 	
 	% Compute the phase quality map
-	PHASE_QUALITY = calculate_phase_quality_mex(wrapped_phase_angle_plane, 1);
+	PHASE_QUALITY = calculate_phase_quality_mex(wrapped_phase_angle_plane,...
+        kernel_radius);
 	
 	% Threshold the phase quality map using histogram equalization
-	phase_quality_bw = (histeq(PHASE_QUALITY, 2));
+% 	phase_quality_bw = (histeq(PHASE_QUALITY, 2));
+    phase_quality_bw = im2bw(PHASE_QUALITY, 0.5);
 	
 	% Set border pixels to 1 to prevent connecting regions via the border
 	phase_quality_bw(1, :) = 1;
