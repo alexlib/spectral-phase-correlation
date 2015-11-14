@@ -9,27 +9,27 @@ fSize = 12;
 
 % Input data directory
 % input_dir = '/Users/matthewgiarra/Desktop/ts3_000014';
-input_dir = '/Users/matthewgiarra/Desktop/xray_tiff';
+input_dir = '/Users/matthewgiarra/Desktop/images';
 
 % Input data base name
 % input_base_name = 'frame_';
-input_base_name = 'mng-2-069-E_';
+input_base_name = '';
 
 % Number of digits in the file names.
-num_digits = 6; 
+num_digits = 4; 
 
 % Input data extension
-input_extension = '.tiff';
+input_extension = '.tif';
 
 % Grid point location (just a single grid point)
-grid_col = 512;
-grid_row = 512;
+grid_col = 929;
+grid_row = 584;
 
 % Start image
-start_image = 0;
+start_image = 23;
 
 % End image
-end_image = 100;
+end_image = 26;
 
 % Frame step
 frame_step = 1;
@@ -38,7 +38,7 @@ frame_step = 1;
 color_channel = 1;
 
 % Correlation step
-correlation_step = 3;
+correlation_step = 1;
 
 % Region size
 region_height = 128;
@@ -154,7 +154,7 @@ gcc_plane = fftshift(abs(real(ifft2(spectral_phase_plane))));
 phase_angle_plane = fftshift(angle(spectral_phase_plane));
 
 % Calculate the phase mask
-[phase_mask, phase_quality] = calculate_phase_mask(phase_angle_plane);
+[phase_mask, phase_quality] = calculate_phase_mask(phase_angle_plane, 3);
 
 % Multiply the phase mask by the complex cross correlation.
 filtered_spectral_phase_plane = fftshift(phase_mask) .* spectral_phase_plane;
