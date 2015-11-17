@@ -162,6 +162,23 @@ filtered_spectral_phase_plane = fftshift(phase_mask) .* spectral_phase_plane;
 % Filtered GCC
 filtered_gcc = fftshift(abs(real(ifft2(filtered_spectral_phase_plane))));
 
+[ty, tx, c] = spc_plane_fit(phase_angle_plane, phase_mask);
+
+[x, y] = meshgrid(1 : region_width, 1 : region_height);
+
+xp = x(phase_mask > 0);
+yp = y(phase_mask > 0);
+pp = phase_angle_plane(phase_mask > 0);
+
+z = c(2) * xp + c(3) * yp + x(1);
+
+d = mean(abs(pp - z));
+
+
+[u,v] = subpixel(filtered_gcc,...
+    region_width, region_height, ones(region_width, region_height), ...
+    1, 0, sqrt(8));
+
 % Plot them
 subplot(2, 3, 1);
 imagesc(phase_angle_plane); 

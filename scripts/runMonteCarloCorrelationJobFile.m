@@ -1,18 +1,14 @@
 function runMonteCarloCorrelationJobFile(JOBLIST)
 
+% Get repository path
+repo_path = getpath('spectral-phase-correlation');
+
 % Add paths
-addpath(fullfile('..', 'correlation_algorithms'));
-addpath(fullfile('..', 'filtering'));
-addpath(fullfile('..', 'jobfiles'));
-addpath(fullfile('..', 'phase_unwrapping'));
-addpath(fullfile('..', 'phase_unwrapping', 'PhaseUnwrapping2D'));
-
-% Add external libraries:
-% 2D weighted least squares
-addpath(fullfile('..', 'correlation_algorithms', 'polyfitweighted2'));
-
-% 1D weighted least squares
-addpath(fullfile('..', 'correlation_algorithms', 'polyfit3'));
+addpath(fullfile(repo_path, 'correlation_algorithms'));
+addpath(fullfile(repo_path, 'phase_unwrapping'));
+addpath(fullfile(repo_path, 'filtering'));
+addpath(fullfile(repo_path, 'jobfiles'));
+addpath(fullfile(repo_path, 'scripts'));
 
 % Count number of jobs
 nJobs = length(JOBLIST);

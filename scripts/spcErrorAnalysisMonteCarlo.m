@@ -95,8 +95,8 @@ switch phase_unwrapping_method
                 
                 % Zero-mean if requested
                 if zero_mean_regions
-                    region_01 = region_01 ./ mean(region_01(:));
-                    region_02 = region_02 ./ mean(region_02(:));
+                    region_01 = region_01 - mean(region_01(:));
+                    region_02 = region_02 - mean(region_02(:));
                 end
                 
                 [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
@@ -116,8 +116,8 @@ switch phase_unwrapping_method
                 
                 % Zero-mean if requested
                 if zero_mean_regions
-                    region_01 = region_01 ./ mean(region_01(:));
-                    region_02 = region_02 ./ mean(region_02(:));
+                    region_01 = region_01 - mean(region_01(:));
+                    region_02 = region_02 - mean(region_02(:));
                 end
 
                 [TY_EST(k), TX_EST(k)] = spc_svd_1D(spatial_window .* ...
@@ -158,8 +158,8 @@ switch phase_unwrapping_method
                 
                 % Zero-mean if requested
                 if zero_mean_regions
-                    region_01 = region_01 ./ mean(region_01(:));
-                    region_02 = region_02 ./ mean(region_02(:));
+                    region_01 = region_01 - mean(region_01(:));
+                    region_02 = region_02 - mean(region_02(:));
                 end
 
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
@@ -181,8 +181,8 @@ switch phase_unwrapping_method
                 
                 % Zero-mean if requested
                 if zero_mean_regions
-                    region_01 = region_01 ./ mean(region_01(:));
-                    region_02 = region_02 ./ mean(region_02(:));
+                    region_01 = region_01 - mean(region_01(:));
+                    region_02 = region_02 - mean(region_02(:));
                 end
 
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...

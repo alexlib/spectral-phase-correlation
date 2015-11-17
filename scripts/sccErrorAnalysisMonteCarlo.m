@@ -5,6 +5,7 @@ JobFile = MONTE_CARLO_PARAMETERS.JobFile;
 results_save_path = MONTE_CARLO_PARAMETERS.Save_Path;
 image_file_path = MONTE_CARLO_PARAMETERS.Image_File_Path;
 parameters_file_path = MONTE_CARLO_PARAMETERS.Image_Parameters_path;
+zero_mean_regions = JobFile.JobOptions.ZeroMeanRegions;
 
 % Start and end image numbers
 start_image = JobFile.Parameters.Images.Start;
@@ -57,6 +58,13 @@ if parallel_processing
         % Read the raw images
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+        
+        % Zero mean windows
+        if zero_mean_regions
+            region_01 = region_01 - mean(region_01(:));
+            region_02 = region_02 - mean(region_02(:));
+        end
+        
         [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
             spatial_window .* region_02, 1);       
     end 
@@ -69,12 +77,18 @@ else
         % Read the raw images
         region_01 = double(imageMatrix1(:, :, image_numbers(k)));
         region_02 = double(imageMatrix2(:, :, image_numbers(k)));
+       
+        % Zero mean windows
+        if zero_mean_regions
+            region_01 = region_01 - mean(region_01(:));
+            region_02 = region_02 - mean(region_02(:));
+        end
+        
         [TY_EST(k), TX_EST(k)] = SCC(spatial_window .* region_01,...
             spatial_window .* region_02, 1);       
     end 
 end
-   
-
+  
 % Save the output data
 save(results_save_path, 'JobFile','TY_EST', 'TX_EST','TY_TRUE', 'TX_TRUE');
 

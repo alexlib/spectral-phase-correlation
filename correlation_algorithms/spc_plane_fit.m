@@ -17,7 +17,10 @@ COEFFS = polyfitweighted2(1 : region_width, 1 : region_height, ...
     p, polynomial_fit_degree, w);
 
 % SPC estimates of translations
-TY = -COEFFS(3) * (region_height) / (2 * pi) + pi /(2*region_height);
-TX = -COEFFS(2) * (region_width)  / (2 * pi) + pi / (2 * region_width);
+% TY = -COEFFS(3) * (region_height) / (2 * pi) + pi /(2*region_height);
+% TX = -COEFFS(2) * (region_width)  / (2 * pi) + pi / (2 * region_width);
+
+TY = -COEFFS(3) * (region_height) / (2 * pi);
+TX = -COEFFS(2) * (region_width)  / (2 * pi);
 
 end

@@ -57,8 +57,8 @@ TY_EST = zeros(number_of_images, 1);
 TX_EST = zeros(number_of_images, 1);
 
 % Read the true translations, which will be saved to file.
-TY_TRUE = Parameters.TranslationY(image_numbers);
-TX_TRUE = Parameters.TranslationX(image_numbers);
+TY_TRUE = Parameters.Translation.Y(image_numbers);
+TX_TRUE = Parameters.Translation.X(image_numbers);
 
 % Correlation method
 % Valid methods: scc, rpc, gcc, spc, fmc

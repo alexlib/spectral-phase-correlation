@@ -33,7 +33,7 @@ DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
 DefaultJob.Parameters.Processing.PhaseFilterAlgorithm = 'MEAN';
 DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
 DefaultJob.Parameters.Processing.WeightedSpcPlaneFitMethod = 'rpc';
-DefaultJob.Parameters.Processing.PeakFitMethod = 'least_squares';
+DefaultJob.Parameters.Processing.PeakFitMethod = '3_point';
 DefaultJob.Parameters.Processing.FilterCutoff = 15;
 % DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 
