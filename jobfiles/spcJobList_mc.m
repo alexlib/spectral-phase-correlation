@@ -1,6 +1,6 @@
 function JOBLIST = spcJobList_mc()
 
-DefaultJob.JobOptions.ParallelProcessing = 0;
+DefaultJob.JobOptions.ParallelProcessing = 1;
 DefaultJob.JobOptions.NumberOfDigits = 6;
 DefaultJob.JobOptions.BooleanGenerateParticleImages = false;
 DefaultJob.JobOptions.BooleanRunAnalysis = true;
@@ -16,8 +16,8 @@ DefaultJob.ImageType = 'synthetic';
 DefaultJob.SetType = 'mc';
 DefaultJob.CaseName = 'piv_test_micro';
 DefaultJob.CorrelationType = 'spc';
-DefaultJob.Parameters.RegionHeight = 128;
-DefaultJob.Parameters.RegionWidth = 128;
+DefaultJob.Parameters.RegionHeight = 64;
+DefaultJob.Parameters.RegionWidth = 64;
 DefaultJob.Parameters.Sets.Start = 1;
 DefaultJob.Parameters.Sets.End = 1;
 DefaultJob.Parameters.Sets.ImagesPerSet = 1000;
@@ -35,6 +35,7 @@ DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
 DefaultJob.Parameters.Processing.WeightedSpcPlaneFitMethod = 'rpc';
 DefaultJob.Parameters.Processing.PeakFitMethod = '3_point';
 DefaultJob.Parameters.Processing.FilterCutoff = 15;
+DefaultJob.Parameters.Processing.APC.KernelRadius = 3;
 % DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'SVD';
 
 % This is the mean of the additive gaussian white noise
@@ -47,27 +48,22 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 
 % JOB 1
 SegmentItem = DefaultJob;
-% SegmentItem.CaseName = '2015-03-20_spc_test_subpixel';
 SegmentItem.CorrelationType = 'rpc';
 SegmentItem.JobOptions.ZeroMeanRegions = 1;
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.5 * [1 1];
 JOBLIST(1) = SegmentItem;
 
 % JOB 2
 SegmentItem = DefaultJob;
-% SegmentItem.CaseName = '2015-03-20_spc_test';
 SegmentItem.CorrelationType = 'scc';
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.5 * [1 1];
 JOBLIST(end + 1) = SegmentItem;
 
 % JOB 3
 SegmentItem = DefaultJob;
-% SegmentItem.CaseName = '2015-03-20_spc_test';
-SegmentItem.CorrelationType = 'spc';
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.50 * [1 1];
+SegmentItem.CorrelationType = 'apc';
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.5 * [1 1];
 SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'Goldstein';
-SegmentItem.Parameters.Processing.PhaseFilterList = {'svd'};
-SegmentItem.Parameters.Processing.KernelSizeList = {[]};
 JOBLIST(end + 1) = SegmentItem;
 
 

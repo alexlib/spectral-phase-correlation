@@ -1,10 +1,21 @@
-function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(...
-    wrapped_phase_angle_plane, kernel_radius)
+function [PHASE_MASK] = calculate_phase_mask(PHASE_QUALITY, KERNEL_RADIUS)
 	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
 		
-	% Measure size
-	[region_height, region_width] = size(wrapped_phase_angle_plane);
-	
+    % Rename the kernel radius
+    rad = KERNEL_RADIUS;
+    
+    % Extract the central portion of the phase quality
+    phase_quality_interior = PHASE_QUALITY(rad + 1 : end - rad - 1, rad + 1 : end - rad - 1);
+    
+    phase_quality_sub = (phase_quality_interior - ...
+        min(phase_quality_interior(:)));
+    
+    % Rescale the phase quality so that its range is [0, 1]
+    phase_quality_scaled = phase_quality_sub ./ max(phase_quality_sub(:));
+    
+    % Measure size
+	[region_height, region_width] = size(phase_quality_scaled);
+    
 	% Make coordinates (Cartesian)
 	[x, y] = meshgrid(1 : region_width, 1 : region_height);
 	
@@ -16,14 +27,11 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(...
 	% with origin (r = 0) at geometric centroid of the region
 	[~, r] = cart2pol(x - xc, y - yc);
 	
-	% Compute the phase quality map
-	PHASE_QUALITY = calculate_phase_quality_mex(wrapped_phase_angle_plane,...
-        kernel_radius);
-	
 	% Threshold the phase quality map using histogram equalization
-	phase_quality_bw = (histeq(PHASE_QUALITY, 2));
+% 	phase_quality_bw = (histeq(phase_quality_scaled, 2));
+    phase_quality_bw = im2bw(phase_quality_scaled, 0.5);
 	
-	% Set border pixels to 1 to prevent connecting regions via the border
+% 	Set border pixels to 1 to prevent connecting regions via the border
 	phase_quality_bw(1, :) = 1;
 	phase_quality_bw(end, :) = 1;
 	phase_quality_bw(:, 1) = 1;
@@ -65,26 +73,50 @@ function [PHASE_MASK, PHASE_QUALITY] = calculate_phase_mask(...
 	end
 		
 	% Find the minimum
-	[region_weighted_centroid_val, region_weighted_centroid_idx] = min(region_weighted_centroid_radial);
+	[~, region_weighted_centroid_idx] = min(region_weighted_centroid_radial);
 	
 	% Mask indices
 	mask_idx = phase_quality_region_props(region_weighted_centroid_idx).PixelIdxList;
 	
 	% Allocate a mask matrix
-	PHASE_MASK = zeros(region_height, region_width);
+	phase_mask_holder = zeros(region_height, region_width);
 	
 	% Apply the mask
-	PHASE_MASK(mask_idx) = 1;
+	phase_mask_holder(mask_idx) = 1;
 	
-	% Zero the border pixels
-	PHASE_MASK(:, 1) = 0 ;
-	PHASE_MASK(:, end) = 0;
-	PHASE_MASK(1, :) = 0;
-	PHASE_MASK(end, :) = 0;
-	
+	% Zero the border pixels just in cae
+	phase_mask_holder(:, 1) = 0 ;
+	phase_mask_holder(:, end) = 0;
+	phase_mask_holder(1, :) = 0;
+	phase_mask_holder(end, :) = 0;
+
 	% Fill the holes
-	PHASE_MASK = imfill(PHASE_MASK);
-	
+	phase_mask_holder = imfill(phase_mask_holder);
+    
+    % Get the region properties again
+    phase_mask_region_props = regionprops(phase_mask_holder,...
+        'PixelIdxList', 'MajorAxisLength', 'MinorAxisLength', ...
+        'Orientation');
+    
+    ax_maj = phase_mask_region_props.MajorAxisLength;
+    ax_min = phase_mask_region_props.MinorAxisLength;
+    ax_angle = 1 * deg2rad(phase_mask_region_props.Orientation);
+    
+    std_maj = ax_maj / 3;
+    std_min = ax_min / 3;
+    
+    % Elliptical Gaussian function
+    x2 = (x - xc) * cos(ax_angle) - (y - yc) * sin(ax_angle);
+    y2 = (x - xc) * sin(ax_angle) + (y - yc) * cos(ax_angle);
+    
+    gaussian_mask = exp(-(x2.^2)/(std_maj^2) - (y2.^2) / (std_min^2));
+    
+    
+    % Full phase mask
+    PHASE_MASK = zeros(size(PHASE_QUALITY));
+    PHASE_MASK(rad + 1 : end - rad - 1, rad + 1 : end - rad - 1) = gaussian_mask;
+  
+   
 end
 
 

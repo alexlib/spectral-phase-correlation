@@ -101,6 +101,9 @@ for n = 1 : nJobs
     % Flag specifying whether the job is FMC
     isFmc = ~isempty(regexpi(correlation_type, 'fmc'));
     
+    % Flag specifying whether the job is APC
+    isApc = ~isempty(regexpi(correlation_type, 'apc'));
+    
     % Base names of results files
     if isSpc
         
@@ -166,7 +169,7 @@ for n = 1 : nJobs
             MonteCarloParams.Save_Path = save_path;
             MonteCarloParams.Image_File_Path = image_file_path;
             MonteCarloParams.Image_Parameters_path = parameters_path;
-
+            
             % Start set timer.
             setTic = tic;
 

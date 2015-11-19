@@ -76,6 +76,24 @@ isSpc = ~isempty(regexpi(correlation_type, 'spc'));
 % Flag specifying whether the job is FMC
 isFmc = ~isempty(regexpi(correlation_type, 'fmc'));
 
+% Flag specifying whether the job is FMC
+isApc = ~isempty(regexpi(correlation_type, 'apc'));
+
+% APC parameter
+if isApc
+    if isfield(JobFile.Parameters, 'APC') ...
+            && isfield(JobFile.Parameters.APC, 'KernelRadius');
+        apc_kernel_radius = ...
+            JobFile.Parameters.APC.KernelRadius;
+
+    else
+         apc_kernel_radius = 3;
+    end
+else
+    % Have this variable so the parfor loop runs.
+    apc_kernel_radius = 0;
+end
+
 % Create the RPC filter if RPC or SPC is specified.
 if isRpc || isSpc
     % Spatial RPC diameter
@@ -88,6 +106,8 @@ else
     % Just set a value so that the parfor loop runs.
     rpc_spectral_filter = 0;
 end
+
+
 
 % SPC-specific parameters calculations.
 if isSpc
@@ -163,6 +183,17 @@ switch subpixel_peak_fit_method
         subpixel_peak_fit_method_numerical = 1;
 end
 
+% Calculate the APC mask
+if isApc
+    [apc_phase_mask, apc_phase_quality] = ...
+    calculate_apc_phase_mask_from_images(imageMatrix1, imageMatrix2,...
+    spatial_window, apc_kernel_radius);
+else
+    % Populate so the parfor loop runs.
+    apc_phase_mask = 0;
+    apc_phase_quality = 0;
+end
+
 % Perform the correlations
 if parallel_processing
     
@@ -201,17 +232,23 @@ if parallel_processing
                     spatial_window .* region_02, spc_weighting_matrix, ...
                     phase_filter_list, phase_filter_kernel_size_list,...
                     phase_unwrapping_method, run_compiled); 
+                
+            case 'apc'
+                [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
+                    spatial_window .* region_02, apc_phase_mask, ...
+                    subpixel_peak_fit_method_numerical); 
         end                              
     end 
     
 else
     
+   
     % Single-core processing
     for k = 1 : number_of_images
-        
+         
         % Print the iteration number
         if ~suppress_messages
-            fprintf('On region %d of %d\n', k, number_of_images);
+            fprintf('On image %d of %d\n', image_numbers(k), number_of_images);
         end
         
         % Read the raw images
@@ -234,13 +271,18 @@ else
             case 'rpc'
                 [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
                     spatial_window .* region_02, rpc_spectral_filter, ...
-                    subpixel_peak_fit_method_numerical); 
-                
+                    subpixel_peak_fit_method_numerical);
+                    
             case 'spc'
                 [TY_EST(k), TX_EST(k)] = spc_2D(spatial_window .* region_01,...
                     spatial_window .* region_02, spc_weighting_matrix, ...
                     phase_filter_list, phase_filter_kernel_size_list,...
-                    phase_unwrapping_method, run_compiled); 
+                    phase_unwrapping_method, run_compiled);
+                
+            case 'apc'
+                [TY_EST(k), TX_EST(k)] = RPC(spatial_window .* region_01,...
+                    spatial_window .* region_02, apc_phase_mask, ...
+                    subpixel_peak_fit_method_numerical); 
         end                        
    end 
     

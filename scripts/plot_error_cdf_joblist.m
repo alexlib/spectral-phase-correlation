@@ -3,20 +3,6 @@ function plot_error_cdf_joblist(JOBLIST)
 % Plot font size.
 fSize = 14;
 
-% Add paths
-addpath(fullfile('..', 'correlation_algorithms'));
-addpath(fullfile('..', 'filtering'));
-addpath(fullfile('..', 'jobfiles'));
-addpath(fullfile('..', 'phase_unwrapping'));
-addpath(fullfile('..', 'phase_unwrapping', 'PhaseUnwrapping2D'));
-
-% Add external libraries:
-% 2D weighted least squares
-addpath(fullfile('..', 'correlation_algorithms', 'polyfitweighted2'));
-
-% 1D weighted least squares
-addpath(fullfile('..', 'correlation_algorithms', 'polyfit3'));
-
 % Count number of jobs
 nJobs = length(JOBLIST);
 
@@ -162,6 +148,7 @@ for n = 1 : nJobs
     % Loop over all the sets
     for k = 1 : nSets             
 
+       
         % Print message
         fprintf(1, ['Analyzing set ' ...
              correlation_type ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
@@ -187,11 +174,43 @@ for n = 1 : nJobs
          % Calculate the error of each component of the disp. estimate
          tx_err = TX_EST - TX_TRUE;
          ty_err = TY_EST - TY_TRUE;
+         
+         plot_save_name_tx = strcat(saveBase, 'tx_error');
+         plot_save_name_ty = strcat(saveBase, 'ty_error');
+         
+         figure(2);
+         plot(TX_TRUE, tx_err, '.k');
+         ylim(0.05 * [-1, 1]);
+         xlim(10 * [-1, 1]);
+         grid on;
+         axis square;
+         xlabel('True X displacement (pixels)', 'FontSize', fSize);
+         ylabel('Displacement error (pixels)', 'FontSize', fSize);
+         title({'Horizontal (x) displacement error', legend_entries{n}}, 'FontSize', fSize);
+         set(gca, 'FontSize', fSize);
+         set(gcf, 'color', 'white');
+         print(2, '-dpng', fullfile('~/Desktop/plots', ...
+             [plot_save_name_tx '.png']));
+         
+         figure(3);
+         plot(TY_TRUE, ty_err, '.k');
+         ylim(0.05 * [-1, 1]);
+         xlim(10 * [-1, 1]);
+         grid on;
+         axis square;
+         xlabel('True Y displacement (pixels)', 'FontSize', fSize);
+         ylabel('Displacement error (pixels)', 'FontSize', fSize);
+         title({'Vertical (y) displacement error', legend_entries{n}}, 'FontSize', fSize);
+         set(gca, 'FontSize', fSize);
+         set(gcf, 'color', 'white');
+         print(3, '-dpng', fullfile('~/Desktop/plots', ...
+             [plot_save_name_ty '.png']));
         
          % Calculate the magnitude of the error.
          tx_err_mag = sqrt(tx_err.^2 + ty_err.^2);
          
          % Create a CDF plot of the error magnitude
+         figure(1);
          p = cdfplot(tx_err_mag);
          set(p, 'linewidth', 2);
          

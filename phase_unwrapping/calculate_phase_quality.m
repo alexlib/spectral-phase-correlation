@@ -2,6 +2,9 @@ function phase_quality_array = calculate_phase_quality(wrapped_phase_angle, kern
 
 
 % Calculate the horizontal and vertical wrapped phase differences
+% phase_diff_rows = phase_diff_kernel_wrapped(wrapped_phase_angle, 1, 'sobel');
+% phase_diff_cols = phase_diff_kernel_wrapped(wrapped_phase_angle, 2, 'sobel');
+
 phase_diff_rows = wrapped_phase_difference(wrapped_phase_angle, 1);
 phase_diff_cols = wrapped_phase_difference(wrapped_phase_angle, 2);
 
