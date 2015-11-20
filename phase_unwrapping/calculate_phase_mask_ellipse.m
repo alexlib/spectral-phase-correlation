@@ -1,4 +1,4 @@
-function [PHASE_MASK] = calculate_phase_mask(PHASE_QUALITY, KERNEL_RADIUS)
+function [PHASE_MASK] = calculate_phase_mask_ellipse(PHASE_QUALITY, KERNEL_RADIUS)
 	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
 		
     % Rename the kernel radius
@@ -100,32 +100,29 @@ function [PHASE_MASK] = calculate_phase_mask(PHASE_QUALITY, KERNEL_RADIUS)
     
     % Read the measured major axis of the ellipse
     % that best fits the binary quality mask
-    ax_maj = phase_mask_region_props.MajorAxisLength;
+    ax_maj = phase_mask_region_props.MajorAxisLength/2;
     
     % Same for the minor axis
-    ax_min = phase_mask_region_props.MinorAxisLength;
+    ax_min = phase_mask_region_props.MinorAxisLength/2;
     
     % Measure the orientation angle of
     % the best fit ellipse and convert it to radians.
     ax_angle = 1 * deg2rad(phase_mask_region_props.Orientation);
-    
-    % Gaussian standard deviations as fractions
-    % of the major and minor axes of the ellipse fit
-    std_maj = ax_maj / 1.8;
-    std_min = ax_min / 1.8;
     
     % Rotate the coordinates for the elliptical Gaussian
     x2 = (x - xc) * cos(ax_angle) - (y - yc) * sin(ax_angle);
     y2 = (x - xc) * sin(ax_angle) + (y - yc) * cos(ax_angle);
     
     % Calculate the Gaussian function
-    gaussian_mask = exp(-(x2.^2)/(std_maj^2) - (y2.^2) / (std_min^2));
+    elliptical_mask = zeros(size(phase_mask_holder));
+    elliptical_mask((x2.^2 / ax_maj^2 + y2.^2 / ax_min^2) < 1) = 1;
     
     % Insert the cropped mask into the phase
     % quality matrix, so that it's the same
     % size as the original phase matrix.
     PHASE_MASK = zeros(size(PHASE_QUALITY));
-    PHASE_MASK(rad + 1 : end - rad - 1, rad + 1 : end - rad - 1) = gaussian_mask;
+    PHASE_MASK(rad + 1 : end - rad - 1,...
+        rad + 1 : end - rad - 1) = elliptical_mask;
   
 end
 

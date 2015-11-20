@@ -59,6 +59,12 @@ correlation_method = 'scc';
 % APC kernel radius
 apc_kernel_radius = 3;
 
+% Apc mask method
+apc_mask_method = 'gaussian';
+
+% Chunk size;
+apc_ensemble_radius = 1;
+
 % Coordinates
 [x, y] = meshgrid(1 : region_width, 1 : region_height);
 
@@ -69,14 +75,20 @@ yc = region_width  / 2 + 1;
 % Angular coordinates
 [~, r] = cart2pol(x - xc, y - yc);
 
-% First image numbers
-image_numbers_01 = start_image : frame_step : end_image;
+% Image numbers
+image_numbers_full_01 = start_image : frame_step : end_image;
 
 % Second image numbers
-image_numbers_02 = image_numbers_01 + correlation_step;
+image_numbers_full_02 = image_numbers_full_01 + correlation_step;
 
 % Number of images
-num_images = length(image_numbers_01);
+num_images_full = length(image_numbers_full_01);
+
+% Number of images after ensemble
+image_nums = ensemble_radius + 1 : num_images_full - ensemble_radius;
+
+% Number of images to correlate
+num_images = length(image_nums);
 
 % Region rows
 region_rows = grid_row + [-region_height/2 : region_height/2 - 1];
@@ -116,13 +128,13 @@ TX_GCC = zeros(num_images, 1);
 
 
 % APC filter
-parfor k = 1 : num_images
+parfor k = 1 : num_images_full
    
     % File name of the first images
-    file_name_01 = [input_base_name num2str(image_numbers_01(k), num_format) input_extension];
+    file_name_01 = [input_base_name num2str(image_numbers_full_01(k), num_format) input_extension];
     
     % File name of the second images
-    file_name_02 = [input_base_name num2str(image_numbers_02(k), num_format) input_extension];
+    file_name_02 = [input_base_name num2str(image_numbers_full_02(k), num_format) input_extension];
     
     % File paths
     image_01 = double(imread(fullfile(input_dir, file_name_01)));
@@ -135,6 +147,8 @@ end
 
 [apc_filter, phase_quality, phase_angle] = calculate_apc_phase_mask_from_images(imageMatrix1, imageMatrix2, region_window, apc_kernel_radius);
 
+% Number of images to correlate
+num
 
 % Do the correlations
 for k = 1 : num_images
