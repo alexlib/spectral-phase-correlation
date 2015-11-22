@@ -1,15 +1,11 @@
-function REGIONMATRIX = extractSubRegions(IMAGE, REGIONSIZE, GRID_POINTS_X, GRID_POINTS_Y)
+function REGIONMATRIX = extract_single_subregion(IMAGE_SIZE, REGIONSIZE, gx, gy)
 % This function extracts subregions from an image.
 
-% Determine the size of the image.
-[imageHeight, imageWidth, ~] = size(IMAGE);
-
-% Make grid points into column vectors
-gx = GRID_POINTS_X(:);
-gy = GRID_POINTS_Y(:);
+imageHeight = IMAGE_SIZE(1);
+imageWidth =  IMAGE_SIZE(2);
 
 % Number of regions
-nRegions = length(gx);
+nRegions = 1;
 
 % Sub region height and width
 region_height = REGIONSIZE(1);
@@ -38,8 +34,8 @@ for k = 1 : nRegions
     
     % image subregion
     image_subregion = IMAGE( ...
-        max([1, yMin(k)]) : min([imageHeight, yMax(k)]) ,...
-        max([1, xMin(k)]) : min([imageWidth, xMax(k)]) );
+        max([1, yMin]) : min([imageHeight, yMax]) ,...
+        max([1, xMin]) : min([imageWidth, xMax]) );
     
     % Min and max row numbers in the full image
     row_min = max([1, yMin(k)]);
@@ -62,7 +58,7 @@ for k = 1 : nRegions
         col_left : (col_left + num_cols - 1)) = image_subregion;
     
     % Populate the full region matrix
-    REGIONMATRIX(:, :, k) =  region_mat_temp;
+    REGIONMATRIX =  region_mat_temp;
 end
 
 end

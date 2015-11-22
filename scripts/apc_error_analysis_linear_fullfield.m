@@ -11,29 +11,26 @@ addpath(fullfile(repo_path, 'scripts'));
 set_type = 'lin';
 region_height = 128;
 region_width = 128;
-heightstr = num2str(region_height);
-widthstr = num2str(region_width);
+heightstr = num2str(4096);
+widthstr = num2str(4096);
 
-image_noise = 0.20;
-
-case_name = ['piv_test_micro_noise_' num2str(image_noise, '%0.2f')];
 
 region_str = [heightstr 'x' widthstr];
 
-image_path = ['~/Desktop/piv_test_images/analysis/' ...
-    'data/synthetic/' set_type '/' case_name '/' region_str ...
-    '/raw/' set_type '_h' heightstr '_w' widthstr '_00001/raw/' ...
-    'raw_image_matrix_' set_type '_h' heightstr '_w' widthstr ...
-    '_seg_000001_010000.mat'];
+% image_path = ['~/Desktop/piv_test_images/analysis/' ...
+%     'data/synthetic/' set_type '/piv_test_micro/' region_str ...
+%     '/raw/' set_type '_h' heightstr '_w' widthstr '_00001/raw/' ...
+%     'raw_image_matrix_' set_type '_h' heightstr '_w' widthstr ...
+%     '_seg_000001_001000.mat'];
 
-% image_path = '~/Desktop/fullfieldRegions.mat';
+image_path = '~/Desktop/fullfieldRegions.mat';
 
 
 parameters_path = ['~/Desktop/piv_test_images/analysis/' ...
-    'data/synthetic/' set_type '/' case_name '/' region_str ...
+    'data/synthetic/' set_type '/piv_test_micro/' region_str ...
     '/raw/' set_type '_h' heightstr '_w' widthstr '_00001/parameters/' ...
     'imageParameters_' set_type '_h' heightstr '_w' widthstr ...
-    '_seg_000001_010000.mat'];
+    '_seg_000001_000001.mat'];
 
 % Apc phase mask method
 apc_phase_mask_method = 'gaussian';
@@ -60,8 +57,8 @@ ensemble_radius = 1;
 image_nums = ensemble_radius + 1 : skip : num_images_full - ensemble_radius;
 
 % Measure true translations
-tx_true = Parameters.Translation.X(image_nums);
-ty_true = Parameters.Translation.Y(image_nums);
+tx_true = Parameters.Translation.X(1);
+ty_true = Parameters.Translation.Y(1);
 
 % Number of images that will be correlated
 num_images = length(image_nums);
@@ -106,37 +103,26 @@ parfor k = 1 : num_images
             apc_phase_mask_method);
         
         % Read the first image
-        region_01_raw = double(imageMatrix1(:, :, n));
+        region_01_raw = imageMatrix1(:, :, n);
 		        
         % Read the second image
-        region_02_raw = double(imageMatrix2(:, :, n));
+        region_02_raw = imageMatrix2(:, :, n);
 	 
         % Zero-mean
         region_01 = region_01_raw - mean(region_01_raw(:));
         region_02 = region_02_raw - mean(region_02_raw(:));
         
         % RPC correlation
-        [TY_RPC(k), TX_RPC(k), rpc_plane] = RPC(...
-            region_01 .* region_window, ...
-            region_02 .* region_window, ...
-            rpc_filter, 1);
+        [TY_RPC(k), TX_RPC(k), rpc_plane] = RPC(region_01, region_02, rpc_filter, 1);
         
         % APC correlation
-        [TY_APC(k), TX_APC(k), apc_plane] = RPC(...
-            region_01 .* region_window, ...
-            region_02 .* region_window, ...
-            apc_filter, 1);
+        [TY_APC(k), TX_APC(k), apc_plane] = RPC(region_01, region_02, apc_filter, 1);
         
         % SCC
-        [TY_SCC(k), TX_SCC(k), scc_plane] = SCC(...
-             region_01 .* region_window, ...
-             region_02 .* region_window, 1);
+        [TY_SCC(k), TX_SCC(k), scc_plane] = SCC(region_01, region_02, 1);
         
         % GCC
-        [TY_GCC(k), TX_GCC(k), gcc_plane] = RPC(...
-            region_01 .* region_window, ...
-            region_02 .* region_window,...
-            gcc_filter, 1);
+        [TY_GCC(k), TX_GCC(k), gcc_plane] = RPC(region_01, region_02, gcc_filter, 1);
         
 %         % Plots
 %         subplot(1, 4, 1);
@@ -257,7 +243,7 @@ title({'CDF of error magnitudes', ...
     [ num2str(num_images + 2 * ensemble_radius) ...
     ' Synthetic micro-PIV images'], ...
     [region_str ' regions, 50% Gaussian window']...
-    ['Diffusion Std dev: ' num2str(diffusion_std, '%0.2f') ' pix/frame, image noise ', num2str(100 * image_noise) '%' ]}, ...
+    ['Diffusion Std dev: ' num2str(diffusion_std, '%0.2f') ' pix/frame']}, ...
     'FontSize', 12);
 
 xlabel('Error magnitude (pixels)', 'FontSIze', fSize);
@@ -269,19 +255,19 @@ fprintf('Mean errors:\nSCC\tGCC\tRPC\tAPC\n%0.3f\t%0.3f\t%0.3f\t%0.3f\n\n', ...
     mean(err_rpc_mag(valid_ind_rpc)), mean(err_apc_mag(valid_ind_apc)));
 
 fprintf('Std Dev errors:\nSCC\tGCC\tRPC\tAPC\n%0.3f\t%0.3f\t%0.3f\t%0.3f\n\n', ...
-    2 * std(err_scc_mag(valid_ind_scc)), 2 * std(err_gcc_mag(valid_ind_gcc)), ...
-    2 * std(err_rpc_mag(valid_ind_rpc)), 2 * std(err_apc_mag(valid_ind_apc)));
+    std(err_scc_mag(valid_ind_scc)), std(err_gcc_mag(valid_ind_gcc)), ...
+    std(err_rpc_mag(valid_ind_rpc)), std(err_apc_mag(valid_ind_apc)));
 
 shear = Parameters.Shear.XZ(image_nums);
 noise_std = Parameters.ImageNoise.StdDev(image_nums);
 
 plot_name = ['error_cdf_' region_str '_diffusion_'...
-    num2str(diffusion_std, '%0.2f') '_noise_' num2str(image_noise, '%0.2f') '.eps'];
+    num2str(diffusion_std, '%0.2f') '.png'];
 
 plot_dir = '~/Desktop/cdfplots';
 plot_path = fullfile(plot_dir, plot_name);
 
-print(2, '-depsc', plot_path);
+print(2, '-dpng', plot_path);
 % 
 % 
 % figure(3);
