@@ -16,16 +16,16 @@ fSize = 12;
 % input_dir = ['/Users/matthewgiarra/Documents/School' ...
 %     '/VT/Research/Aether/spc/analysis/data/xray/mng-2-069-E/raw'];
 
-input_dir = '~/Desktop/xray_test_01/raw';
+input_dir = '~/Desktop/schlieren/raw';
 
-% Input data base name
-input_base_name = 'img1_';
+% Input data base name 
+input_base_name = 'jhu_buoy_turb_';
 
 % Number of digits in the file names.
-num_digits = 5; 
+num_digits = 2; 
 
 % Input data extension
-input_extension = '.TIF';
+input_extension = '.tif';
 
 % Grid point location (just a single grid point)
 grid_col = 512;
@@ -36,12 +36,12 @@ grid_row = 512;
 start_image = 1;
 
 % End image
-end_image = 9;
+end_image = 8;
 
 % Frame step
 frame_step = 1;
 
-ensemble_radius = 10;
+ensemble_radius = 3;
 
 % Color channel to correlate
 color_channel = 1;
@@ -57,7 +57,7 @@ region_width = 128;
 window_fraction = [0.5, 0.5];
 
 % Correlation method
-correlation_method = 'scc';
+correlation_method = 'apc';
 
 % APC kernel radius
 apc_kernel_radius = 3;
@@ -66,7 +66,7 @@ apc_kernel_radius = 3;
 apc_mask_method = 'gaussian';
 
 % Chunk size;
-apc_ensemble_radius = 10;
+apc_ensemble_radius = 3;
 
 % Image numbers
 image_numbers_full_01 = start_image : frame_step : end_image;
@@ -216,17 +216,15 @@ for k = 1 : num_images
         fprintf('Processing image %d of %d...\n', k, num_images);
         
         % Read the first image
-        region_01 = imageMatrix1(:, :, k);
+        region_01_raw = imageMatrix1(:, :, k);
 		        
         % Read the second image
-        region_02 = imageMatrix2(:, :, k);
+        region_02_raw = imageMatrix2(:, :, k);
 	 
         % Zero-mean
         region_01 = region_01_raw - mean(region_01_raw(:));
         region_02 = region_02_raw - mean(region_02_raw(:));
-        
        
-        
         % RPC correlation
         [TY_RPC(k), TX_RPC(k), rpc_plane] = RPC(...
             region_window .* region_01, ...
