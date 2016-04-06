@@ -50,6 +50,7 @@ for n = 1 : nJobs
 
    % Number of digits in the set names
     setDigits = 5;
+    
     % Numbering format tag for image sets
     setFormat = ['%0' num2str(setDigits) '.0f'];
 

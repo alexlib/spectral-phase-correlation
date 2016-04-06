@@ -16,7 +16,8 @@ widthstr = num2str(region_width);
 
 image_noise = 0.20;
 
-case_name = ['piv_test_micro_noise_' num2str(image_noise, '%0.2f')];
+% case_name = ['piv_test_micro_noise_' num2str(image_noise, '%0.2f')];
+case_name = ['piv_test_micro_diffusion_0_5'];
 
 region_str = [heightstr 'x' widthstr];
 
@@ -24,7 +25,7 @@ image_path = ['~/Desktop/piv_test_images/analysis/' ...
     'data/synthetic/' set_type '/' case_name '/' region_str ...
     '/raw/' set_type '_h' heightstr '_w' widthstr '_00001/raw/' ...
     'raw_image_matrix_' set_type '_h' heightstr '_w' widthstr ...
-    '_seg_000001_010000.mat'];
+    '_seg_000001_001000.mat'];
 
 % image_path = '~/Desktop/fullfieldRegions.mat';
 
@@ -33,7 +34,7 @@ parameters_path = ['~/Desktop/piv_test_images/analysis/' ...
     'data/synthetic/' set_type '/' case_name '/' region_str ...
     '/raw/' set_type '_h' heightstr '_w' widthstr '_00001/parameters/' ...
     'imageParameters_' set_type '_h' heightstr '_w' widthstr ...
-    '_seg_000001_010000.mat'];
+    '_seg_000001_001000.mat'];
 
 % Apc phase mask method
 apc_phase_mask_method = 'gaussian';
@@ -51,20 +52,24 @@ skip = 1;
 [region_height, region_width, num_images_full] = size(imageMatrix1);
 
 % Kernel size
-apc_kernel_radius = 3;
+apc_kernel_radius = 5;
 
 % Ensemble length
-ensemble_radius = 1;
+ensemble_radius = 10;
 
 % Image numbers
 image_nums = ensemble_radius + 1 : skip : num_images_full - ensemble_radius;
 
 % Measure true translations
 tx_true = Parameters.Translation.X(image_nums);
-ty_true = Parameters.Translation.Y(image_nums);
+ty_true = -1 * Parameters.Translation.Y(image_nums);
+
+% Diffusion
+diffusion_true = Parameters.Diffusion(image_nums);
 
 % Number of images that will be correlated
 num_images = length(image_nums);
+% num_images = 1000;
 
 % RPC filter
 rpc_filter = spectralEnergyFilter(region_height, region_width, sqrt(8));
@@ -86,8 +91,11 @@ TX_GCC = zeros(num_images, 1);
 region_window = gaussianWindowFilter(...
     [region_height, region_width], [0.5, 0.5], 'fraction');
 
+% Allocate the APC filter matrix
+apc_filter = zeros(region_height, region_width, num_images);
+
 % Do the correlations
-parfor k = 1 : num_images
+for k = 1 : num_images
 
         % Inform the user
         fprintf('Processing image %d of %d...\n', k, num_images);
@@ -100,7 +108,7 @@ parfor k = 1 : num_images
         region_block_02 = imageMatrix2(:, :, n - ensemble_radius : n + ensemble_radius);
         
         % Calculate the phase filter
-        [apc_filter, phase_quality, phase_angle] = ...
+        [apc_filter(:, :, k), phase_quality, phase_angle] = ...
             calculate_apc_phase_mask_from_images(region_block_01,...
             region_block_02, region_window, apc_kernel_radius, ...
             apc_phase_mask_method);
@@ -121,11 +129,15 @@ parfor k = 1 : num_images
             region_02 .* region_window, ...
             rpc_filter, 1);
         
+
+        
+        
+        
         % APC correlation
         [TY_APC(k), TX_APC(k), apc_plane] = RPC(...
             region_01 .* region_window, ...
             region_02 .* region_window, ...
-            apc_filter, 1);
+            apc_filter(:, :, k), 1);
         
         % SCC
         [TY_SCC(k), TX_SCC(k), scc_plane] = SCC(...
@@ -137,6 +149,44 @@ parfor k = 1 : num_images
             region_01 .* region_window, ...
             region_02 .* region_window,...
             gcc_filter, 1);
+        
+        subplot(2, 2, 1);
+        imagesc(phase_angle); axis image;
+        caxis([-pi, pi]);
+        title('Phase angle');
+        axis off
+        
+        subplot(2, 2, 2);
+        imagesc(apc_filter(:, :, k));
+        axis image;
+        title(sprintf('APC Filter, Diffusion: %0.3f', Parameters.Diffusion(n)));
+        axis off
+        p = get(gca, 'position');
+        p(1) = 0.4;
+        set(gca, 'position', p);
+        
+        subplot(2, 2, 3);
+        mesh(rpc_plane ./ max(rpc_plane(:)), 'edgecolor', 'black'); axis square
+        title('RPC');
+        xlim([1 region_width]);
+        ylim([1 region_height]);
+        axis off;
+        p = get(gca, 'position');
+        p(2) = 0.15;
+        set(gca, 'position', p);
+        
+        subplot(2, 2, 4);
+        mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black'); axis square
+        title('APC');
+        xlim([1 region_width]);
+        ylim([1 region_height]);
+        axis off
+        p = get(gca, 'position');
+        p(1) = 0.4;
+        p(2) = 0.15;
+        set(gca, 'position', p);
+        print(1, '-dpng', '-r250', sprintf('~/Desktop/plots/%06d.png', k));
+
         
 %         % Plots
 %         subplot(1, 4, 1);
@@ -167,7 +217,7 @@ parfor k = 1 : num_images
 %         zlim([0, 1])
 %         axis square
 %         
-%         pause();
+%     
 %         
 end
 

@@ -1,6 +1,6 @@
 function [phase_mask, phase_quality, phase_angle] = ...
     calculate_apc_phase_mask_from_images(imageMatrix1, imageMatrix2,...
-    kernel_radius, phase_mask_method);
+    region_window, kernel_radius, phase_mask_method);
 
 % Measure region dimensions
 [region_height, region_width, num_regions] = size(imageMatrix1);
@@ -12,8 +12,10 @@ complex_phase = zeros(region_height, region_width);
 for k = 1 : num_regions
 
     % Extract the subregions
-    I1 = double(imageMatrix1(:, :, k));
-    I2 = double(imageMatrix2(:, :, k));
+    I1 = region_window .* zero_mean_region(double(imageMatrix1(:, :, k)));
+    I2 = region_window .* zero_mean_region(double(imageMatrix2(:, :, k)));
+    
+    % Zero mean
     
     % Add the complex phase
     complex_phase = ...
