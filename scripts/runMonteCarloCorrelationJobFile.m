@@ -1,7 +1,8 @@
-function runMonteCarloCorrelationJobFile(JOBLIST)
+function JOB_SAVE_PATH_LIST = runMonteCarloCorrelationJobFile(JOBLIST)
 
 % Get repository path
-repo_path = getpath('spectral-phase-correlation');
+% repo_path = getpath('spectral-phase-correlation');
+repo_path = '~/Desktop/spectral-phase-correlation';
 
 % Add paths
 addpath(fullfile(repo_path, 'correlation_algorithms'));
@@ -12,6 +13,9 @@ addpath(fullfile(repo_path, 'scripts'));
 
 % Count number of jobs
 nJobs = length(JOBLIST);
+
+% Allocate results paths
+JOB_SAVE_PATH_LIST = cell(nJobs, 1);
 
 for n = 1 : nJobs
 
@@ -28,6 +32,13 @@ for n = 1 : nJobs
     startSet = JobFile.Parameters.Sets.Start;
     endSet = JobFile.Parameters.Sets.End;
     images_per_set = JobFile.Parameters.Sets.ImagesPerSet;
+    
+    % List of set numbers
+    setList = startSet : endSet;
+    nSets = length(setList);
+    
+    % Allocate set paths
+    set_save_path_list = cell(nSets, 1);
     
     % First and last image
     first_image = JobFile.Parameters.Images.Start;
@@ -57,10 +68,6 @@ for n = 1 : nJobs
     % Number of digits in image names
     imageDigits = 6;
     imageNumberFormat = ['%0' num2str(imageDigits) '.0f'];
-
-    % List of set numbers
-    setList = startSet : endSet;
-    nSets = length(setList);
     
     % Construct the path to the repository
     if JobFile.JobOptions.RepositoryPathIsAbsolute
@@ -140,8 +147,8 @@ for n = 1 : nJobs
     end
   
     % Loop over all the sets
-    for k = 1 : nSets             
-
+    for k = 1 : nSets    
+        
         % Print message
         fprintf(1, ['Analyzing set ' ...
              correlation_type ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
@@ -153,13 +160,16 @@ for n = 1 : nJobs
         % Path to the raw image file
         image_file_path = fullfile(image_dir, ['raw_image_matrix_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat'] );
 
-         % Path to image parameters
+        % Path to image parameters
         parameters_path = fullfile(imageParentDirectory,...
                 [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_' num2str(setList(k), setFormat)], 'parameters', ...
                 ['imageParameters_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat']);                         
 
          % Specify path to saved file
          save_path = fullfile( writeDir, [ saveBase num2str( setList(k), setFormat ) '.mat' ] ); % Save path
+         
+         % Save the save path to the list
+         set_save_path_list{k} = save_path;
 
             % Perform analysis on the image set if "skip existing sets" isn't
             % selected or if the set results don't exist.
@@ -175,7 +185,7 @@ for n = 1 : nJobs
             setTic = tic;
 
             % Run the correlation Monte Carlo analysis
-            correlationErrorAnalysisMonteCarlo(MonteCarloParams);
+            correlationErrorAnalysisMonteCarlo_runningEnsemble(MonteCarloParams);
 
             % Display elapsed time.
             setTime = toc(setTic);
@@ -186,6 +196,9 @@ for n = 1 : nJobs
             disp(['Skipping set ' num2str(setList(k))]); 
         end
     end
+    
+    % Populate the list of save paths
+    JOB_SAVE_PATH_LIST{n} = set_save_path_list;
 
 end % End if  
 

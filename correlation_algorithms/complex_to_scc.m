@@ -15,6 +15,9 @@ function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_CORRELATION_PLANE] = ...
 % Inverse-FFT the spectral correlation to get the SCC plane
 SPATIAL_CORRELATION_PLANE = abs(real(fftshift(ifft2(COMPLEX_CORRELATION))));
 
+% surf(SPATIAL_CORRELATION_PLANE ./ max(SPATIAL_CORRELATION_PLANE(:)));
+% pause(0.01);
+
 % Prana subplixel implmentation
 [TRANSLATION_X, TRANSLATION_Y] = ...
     subpixel(SPATIAL_CORRELATION_PLANE, ...

@@ -3,7 +3,7 @@ function [phase_mask, phase_quality, phase_angle] = ...
     kernel_radius, phase_mask_method)
 
 % Phase angle
-phase_angle = fftshift(angle(phaseOnlyFilter(complex_correlation)));
+phase_angle = angle(phaseOnlyFilter(complex_correlation));
 
 % Calculate the phase quality
 phase_quality = calculate_phase_quality_mex(phase_angle, kernel_radius);
