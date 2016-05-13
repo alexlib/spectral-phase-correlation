@@ -194,7 +194,7 @@ else
                 [xloc, yloc]=meshgrid(x_min:x_max,y_min:y_max);
 
                 %Run solver; default to 3-point gauss if it fails
-                try
+%                 try
                     %[xvars resnorm resid exitflag output]=lsqnonlin(@leastsquares2D,x0,LB,UB,options,points(:),[yloc(:),xloc(:)],method);
                     [xvars]=lsqnonlin(@leastsquares2D,x0, LB, UB,options,points(:),[yloc(:),xloc(:)], method);
                     shift_errx=xvars(4)-shift_locx;
@@ -239,12 +239,12 @@ else
                         goodSize = 1;
                     end
 
-                catch err%#ok
-                    %warning(err.message)
-                    disp(err.message)
-                   
-                    method=1;
-                end
+%                 catch err%#ok
+%                     %warning(err.message)
+%                     disp(err.message)
+%                    
+%                     method=1;
+%                 end
             end %while trying to fit region
         end %if method==2,3,4
         if method==1
@@ -376,7 +376,7 @@ elseif method==4
         erfy2 = erf(num2*(yp(ii)+1-y_centroid));
         
         % map an intensity profile of a gaussian function:
-        gauss_int(ii)=(num1/abs(betas))*(erfx1*(erfy1-erfy2)+erfx2*(-erfy1+erfy2));
+        gauss_int(ii)=(num1/abs(betasx))*(erfx1*(erfy1-erfy2)+erfx2*(-erfy1+erfy2));
         
     end
 end

@@ -1,6 +1,11 @@
 function [phase_mask, phase_quality, phase_angle] = ...
     calculate_apc_phase_mask_from_correlation(complex_correlation, ...
-    kernel_radius, phase_mask_method)
+    kernel_radius, phase_mask_method, max_std)
+
+% Default to no maximum standard deviation
+if nargin < 4
+    max_std = inf;
+end
 
 % Phase angle
 phase_angle = angle(phaseOnlyFilter(complex_correlation));
@@ -12,7 +17,7 @@ switch lower(phase_mask_method)
     case 'gaussian'
                 % Calculate the phase mask.
         phase_mask = calculate_phase_mask_gaussian...
-            (phase_quality, kernel_radius);
+            (phase_quality, kernel_radius, max_std);
         
     case 'ellipse'
         

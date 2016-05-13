@@ -69,7 +69,6 @@ TX_TRUE = Parameters.Translation.X(image_numbers);
 % APC Kernel radius
 apc_kernel_radius = JobFile.Parameters.Processing.APC.KernelRadius;
 
-
 % RPC Diameter
 rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter;
 
@@ -77,6 +76,9 @@ rpc_diameter = JobFile.Parameters.Processing.SpatialRPCDiameter;
 rpc_filter = spectralEnergyFilter(region_height, ...
         region_width, rpc_diameter);
 
+% Standard deviation of the RPC filter
+[~, rpc_std, ~] = fit_gaussian_2D(rpc_filter);
+    
 % Convert the subpixel peak-fit method string extracted from the jobfile
 % into the numerical peak-fit method identifier expected by the function
 % subpixel.m
@@ -108,13 +110,13 @@ for k = 1 : number_of_images
     % Zero mean the regions, or not
     if zero_mean_regions
          region_01 = zero_mean_region(...
-             region_matrix_01 .* spatial_window);
+             region_matrix_01) .* spatial_window;
           region_02 = zero_mean_region(...
-             region_matrix_02 .* spatial_window);
+             region_matrix_02) .* spatial_window;
     else
         % Read the raw images
-        region_01 = region_matrix_01;
-        region_02 = region_matrix_02;
+        region_01 = region_matrix_01 .* spatial_window;
+        region_02 = region_matrix_02 .* spatial_window;
     end
 
     % Complex correlation
@@ -123,7 +125,7 @@ for k = 1 : number_of_images
     
     % Calculate the APC filter
     [apc_filter, ~, ang] = calculate_apc_phase_mask_from_correlation(...
-            complex_correlation, apc_kernel_radius, 'gaussian');
+            complex_correlation, apc_kernel_radius, 'gaussian', rpc_std);
 
     % SCC
     [ty_scc(k), tx_scc(k), scc_plane] = ...
@@ -140,41 +142,41 @@ for k = 1 : number_of_images
     complex_to_filtered_phase_correlation(...
         complex_correlation, apc_filter, ...
         subpixel_peak_fit_method_numerical); 
-    
-%     subplot(2, 3, 1)
-%     % Do the different correlation algorithms.
-%     imagesc(ang);
-%     axis image;
-%     axis off
-%     
-%     subplot(2, 3, 2);
-%     imagesc(apc_filter);
-%     axis image;
-%     axis off
-%     
-%     subplot(2, 3, 4);
-%     mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
-%     axis square
-%     axis off
-%     title('SCC');
-%    
-%     subplot(2, 3, 5);
-%     mesh(rpc_plane ./ max(rpc_plane(:)), 'edgecolor', 'black');
-%     axis square
-%     axis off
-%     title('RPC');
-%     
-%     subplot(2, 3, 6);
-%     mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black');
-%     axis square
-%     axis off
-%     title('APC');
-%     
-% %     surf(apc_filter ./ max(apc_filter(:)));
-%     pause(0.01);
 
 end 
     
+
+% figure(1)
+% subplot(2, 3, 1)
+% % Do the different correlation algorithms.
+% imagesc(ang);
+% axis image;
+% axis off
+% 
+% subplot(2, 3, 2);
+% imagesc(apc_filter);
+% axis image;
+% axis off
+% 
+% subplot(2, 3, 4);
+% mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
+% axis square
+% axis off
+% title('SCC');
+% 
+% subplot(2, 3, 5);
+% mesh(rpc_plane ./ max(rpc_plane(:)), 'edgecolor', 'black');
+% axis square
+% axis off
+% title('RPC');
+% 
+% subplot(2, 3, 6);
+% mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black');
+% axis square
+% axis off
+% title('APC');
+
+
 % Save the output data
 save(results_save_path,...
     'JobFile',...

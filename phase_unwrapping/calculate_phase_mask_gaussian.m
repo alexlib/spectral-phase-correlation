@@ -1,12 +1,19 @@
-function [PHASE_MASK] = calculate_phase_mask_gaussian(PHASE_QUALITY, KERNEL_RADIUS)
+function [PHASE_MASK] = ...
+    calculate_phase_mask_gaussian(PHASE_QUALITY, KERNEL_RADIUS, MAX_STD)
 	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
 		
+    % Defualt to no maximum standard deviation
+    if nargin < 3
+        MAX_STD = inf;
+    end
+    
     % Rename the kernel radius
     rad = KERNEL_RADIUS;
     
     % Extract the central portion of the phase quality
     phase_quality_interior = PHASE_QUALITY(rad + 1 : end - rad - 1, rad + 1 : end - rad - 1);
     
+    % Minimum subtraction of phase quality
     phase_quality_sub = (phase_quality_interior - ...
         min(phase_quality_interior(:)));
     
@@ -111,15 +118,18 @@ function [PHASE_MASK] = calculate_phase_mask_gaussian(PHASE_QUALITY, KERNEL_RADI
     
     % Gaussian standard deviations as fractions
     % of the major and minor axes of the ellipse fit
-    std_maj = ax_maj / 1.00;
-    std_min = ax_min / 1.00;
+    % MAX_STD is the largest allowable standard deviation,
+    % and a reasonable choice is, e.g., the 
+    % standard deviation of the normal RPC filter.
+    std_maj = min(ax_maj / 2.00, MAX_STD);
+    std_min = min(ax_min / 2.00, MAX_STD);
     
     % Rotate the coordinates for the elliptical Gaussian
     x2 = (x - xc) * cos(ax_angle) - (y - yc) * sin(ax_angle);
     y2 = (x - xc) * sin(ax_angle) + (y - yc) * cos(ax_angle);
     
     % Calculate the Gaussian function
-    gaussian_mask = exp(-(x2.^2)/(std_maj^2) - (y2.^2) / (std_min^2));
+    gaussian_mask = exp(-(x2.^2)/(2 * std_maj^2) - (y2.^2) / (2 * std_min^2));
     
     % Insert the cropped mask into the phase
     % quality matrix, so that it's the same
