@@ -19,7 +19,7 @@ void extract_subregion(float *DEST_ARRAY, float *SOURCE_ARRAY, int SOURCE_ORIGIN
 void conv2_separable(float *DEST_ARRAY, float *DATA_ARRAY, int DATA_NUM_ROWS, int DATA_NUM_COLS,
 	float *KERNEL_1D, int KERNEL_LENGTH);
 
-float moving_std_dev_2D(float *DEST_ARRAY, float *SOURCE_ARRAY,
+void moving_std_dev_2D(float *DEST_ARRAY, float *SOURCE_ARRAY,
 int SOURCE_NUM_ROWS, int SOURCE_NUM_COLS, int KERNEL_DIM);
 
 void devrand(float *array, int array_length, float lower_bound, float upper_bound);
@@ -283,7 +283,7 @@ void sub2ind(int *ind, int row, int col, int num_cols){
 
 }
 
-float moving_std_dev_2D(float *DEST_ARRAY, float *DATA_ARRAY,
+void moving_std_dev_2D(float *DEST_ARRAY, float *DATA_ARRAY,
 int DATA_NUM_ROWS, int DATA_NUM_COLS, int KERNEL_DIM){
 // Compute the moving-window standard deviation of an array	
 // using a symmetric window of length N per side.
