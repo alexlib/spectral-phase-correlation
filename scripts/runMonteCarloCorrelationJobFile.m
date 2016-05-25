@@ -186,7 +186,8 @@ for n = 1 : nJobs
 
             % Run the correlation Monte Carlo analysis
             correlationErrorAnalysisMonteCarlo_runningEnsemble(MonteCarloParams);
-
+%             correlationErrorAnalysisMonteCarlo(MonteCarloParams);
+            
             % Display elapsed time.
             setTime = toc(setTic);
             fprintf(1, 'Analyzed %d images in %0.2f sec\n', num_images, setTime);

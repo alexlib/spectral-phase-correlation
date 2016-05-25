@@ -52,7 +52,7 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 % JOB 3
 SegmentItem = DefaultJob;
 SegmentItem.CorrelationType = 'apc';
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.3 * [1 1];
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.5 * [1 1];
 SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'Goldstein';
 JOBLIST(1) = SegmentItem;
 

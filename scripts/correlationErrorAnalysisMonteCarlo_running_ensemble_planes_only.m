@@ -91,13 +91,8 @@ switch subpixel_peak_fit_method
         subpixel_peak_fit_method_numerical = 1;
 end
 
-% Allocate an array for the complex correlation
-ensemble_correlation_complex = zeros(region_height, region_width);
-scc_plane_ensemble = zeros(region_height, region_width);
-rpc_plane_ensemble = zeros(region_height, region_width);
-
-% Weighting matrix for the subpixel fit
-subpixel_weighting_matrix = ones(region_height, region_width);
+% Initialize the complex correlation
+complex_correlation = zeros(region_height, region_width);
 
 % Do the processing.
 for k = 1 : number_of_images
@@ -123,93 +118,68 @@ for k = 1 : number_of_images
         region_01 = region_matrix_01 .* spatial_window;
         region_02 = region_matrix_02 .* spatial_window;
     end
-   
+
     % Complex correlation
-    complex_correlation = fftshift(crossCorrelation(region_01, region_02));
-    
-    % Add to the ensemble
-    ensemble_correlation_complex = ensemble_correlation_complex + complex_correlation;
-    
-    complex_correlation =  ...
+    complex_correlation(:, :, k) = ...
         fftshift(crossCorrelation(region_01, region_02));
 %     
-    % Calculate the APC filter
-    [apc_filter, ~, ~] = calculate_apc_phase_mask_from_correlation(...
-            ensemble_correlation_complex, apc_kernel_radius, 'gaussian', rpc_std);
-
-    % SCC
-    scc_plane_ensemble = scc_plane_ensemble + fftshift(...
-        (real(ifft2(complex_correlation))));
-    
-    rpc_plane_ensemble = rpc_plane_ensemble + fftshift(...
-        (real(ifft2(rpc_filter .* phaseOnlyFilter(complex_correlation)))));
-    
-   % Subpixel displacement estimate on the ensemble SCC plane
-   [tx_scc(k), ty_scc(k)] = subpixel(abs(scc_plane_ensemble), ...
-       region_width, region_height, subpixel_weighting_matrix, ...
-       subpixel_peak_fit_method_numerical, 0, sqrt(8));
-   
-   % Subpixel displacement estimate on the ensemble RPC plane
-   [tx_rpc(k), ty_rpc(k)] = subpixel(abs(rpc_plane_ensemble), ...
-       region_width, region_height, subpixel_weighting_matrix, ...
-       subpixel_peak_fit_method_numerical, 0, sqrt(8));
-    
-   
-    % APC   
-    [ty_apc(k), tx_apc(k), apc_plane] = ...
-    complex_to_filtered_phase_correlation(...
-        ensemble_correlation_complex, apc_filter, ...
-        subpixel_peak_fit_method_numerical); 
-
-%     
-%     subplot(2, 3, 1)
-%     % Do the different correlation algorithms.
-%     imagesc(phase_angle_plane);
-%     axis image;
-%     axis off
-%     title({'Phase angle', sprintf('Ensemble length: %d', k)});
+%     % Calculate the APC filter
+%     [apc_filter, ~, phase_angle(:, :, k)] = calculate_apc_phase_mask_from_correlation(...
+%             complex_correlation, apc_kernel_radius, 'gaussian', rpc_std);
 % 
-%     subplot(2, 3, 2);
-%     imagesc(apc_filter);
-%     axis image;
-%     axis off
-%     title({'APC filter', sprintf('Diffusion std dev: %0.1f pix', diffusion_std_dev)});
+%     % SCC
+%     [ty_scc(k), tx_scc(k), scc_plane(:, :, k)] = ...
+%         complex_to_scc(complex_correlation, ...
+%         subpixel_peak_fit_method_numerical);
 % 
-%     subplot(2, 3, 4);
-%     mesh(scc_plane_ensemble ./ max(scc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-%     axis square
-%     axis off
-%     title('SCC');
-% 
-%     subplot(2, 3, 5);
-%     mesh(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-%     axis square
-%     axis off
-%     title('RPC');
-% 
-%     subplot(2, 3, 6);
-%     mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-%     axis square
-%     axis off
-%     title('APC');
-%     
-%     drawnow;
-    
-%     plot_name = sprintf('corr_plot_%05d.png', k);
-%     plot_path = fullfile(plot_dir, plot_name);
-%     print(1, '-dpng', '-r300', plot_path);
-
+%     % RPC
+%     [ty_rpc(k), tx_rpc(k), rpc_plane(:, :, k)] = ...
+%         complex_to_filtered_phase_correlation(...
+%             complex_correlation, rpc_filter, ...
+%             subpixel_peak_fit_method_numerical); 
+%     % APC   
+%     [ty_apc(k), tx_apc(k), apc_plane(:, :, k)] = ...
+%     complex_to_filtered_phase_correlation(...
+%         complex_correlation, apc_filter, ...
+%         subpixel_peak_fit_method_numerical); 
 
 end 
+    
+
+% figure(1)
+% subplot(2, 3, 1)
+% % Do the different correlation algorithms.
+% imagesc(ang);
+% axis image;
+% axis off
+% 
+% subplot(2, 3, 2);
+% imagesc(apc_filter);
+% axis image;
+% axis off
+% 
+% subplot(2, 3, 4);
+% mesh(scc_plane ./ max(scc_plane(:)), 'edgecolor', 'black');
+% axis square
+% axis off
+% title('SCC');
+% 
+% subplot(2, 3, 5);
+% mesh(rpc_plane ./ max(rpc_plane(:)), 'edgecolor', 'black');
+% axis square
+% axis off
+% title('RPC');
+% 
+% subplot(2, 3, 6);
+% mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black');
+% axis square
+% axis off
+% title('APC');
 
 % Save the output data
 save(results_save_path,...
     'JobFile',...
-    'tx_rpc', 'ty_rpc', ...
-    'tx_scc', 'ty_scc', ...
-    'tx_apc', 'ty_apc', ...
-    'TX_TRUE', 'TY_TRUE',...
-    '-v7.3');
+    'TX_TRUE', 'TY_TRUE', 'complex_correlation', '-v7.3');
 
 end
 
