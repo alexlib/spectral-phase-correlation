@@ -3,6 +3,7 @@
 #include <math.h>
 #include <sys/time.h>
 
+
 #define PI (3.141592653589793)
 
 // Function prototypes
@@ -15,9 +16,15 @@ void calculate_phase_quality(float *PHASE_QUALITY_ARRAY, float *WRAPPED_PHASE_AN
 	
 void extract_subregion(float *DEST_ARRAY, float *SOURCE_ARRAY, int SOURCE_ORIGIN_ROW, int SOURCE_ORIGIN_COL, int SOURCE_NUM_ROWS, int SOURCE_NUM_COLS, int DEST_NUM_ROWS, int DEST_NUM_COLS);
 
-void standard_deviation(float *RESULT, float *INPUT, int LENGTH);
+void conv2_separable(float *DEST_ARRAY, float *DATA_ARRAY, int DATA_NUM_ROWS, int DATA_NUM_COLS,
+	float *KERNEL_1D, int KERNEL_LENGTH);
+
+float moving_std_dev_2D(float *DEST_ARRAY, float *SOURCE_ARRAY,
+int SOURCE_NUM_ROWS, int SOURCE_NUM_COLS, int KERNEL_DIM);
 
 void devrand(float *array, int array_length, float lower_bound, float upper_bound);
+
+int isodd(int number);
 
 void print_array(float *ARRAY, int NUM_ROWS, int NUM_COLS);
 
@@ -124,6 +131,7 @@ int main(int argc, char *argv[]){
 	free(input_array);
 	free(quality_array);
 	free(noise_array);
+	free(ind);
 	
 	// GTFO
 	return(0);
@@ -136,18 +144,10 @@ void calculate_phase_quality(float *PHASE_QUALITY_ARRAY, float *WRAPPED_PHASE_AN
 		int num_elements = NUM_ROWS * NUM_COLS;
 		
 		// Counters for rows and columns
-		int r, c;
-		
-		// Index pointer
-		int *ind;
-		ind = malloc(sizeof(int));
-		
-		// Source origin points
-		int source_origin_row, source_origin_col;
+		int k;
 		
 		// Size of the phase quality kernel
 		int kernel_dim = 2 * KERNEL_RADIUS + 1;
-
 
 		// Phase differences
 		float *phase_diff_rows;
@@ -156,81 +156,34 @@ void calculate_phase_quality(float *PHASE_QUALITY_ARRAY, float *WRAPPED_PHASE_AN
 		// Allocate memory for phase differences
 		phase_diff_rows = calloc(num_elements, sizeof(float));
 		phase_diff_cols = calloc(num_elements, sizeof(float));
-		
-		
-		// Subregions of the phase differences
-		float *row_diffs_region;
-		float *col_diffs_region;
-		
-		// Allocate memory for the subregions
-		row_diffs_region = malloc(kernel_dim * kernel_dim * sizeof(float));
-		col_diffs_region = malloc(kernel_dim * kernel_dim * sizeof(float));
-		
-		
+				
 		// Standard deviations
 		float *row_std_dev;
 		float *col_std_dev;
 		
 		// Allocate the standard deviations
-		row_std_dev = malloc(sizeof(float));
-		col_std_dev = malloc(sizeof(float));
-		
-		// Min and max columns and rows
-		// The kernel is like a stencil
-		// over which standard deviations are
-		// going to be calculated, and the
-		// whole stencil has to lie within the array.
-		// So the min and max columns are the positions
-		// at which the stencil can be cenetered before
-		// its edges hang off the edge of the source array.
-		int col_min = KERNEL_RADIUS;
-		int col_max = NUM_COLS - KERNEL_RADIUS;
-		int row_min = KERNEL_RADIUS;
-		int row_max = NUM_ROWS - KERNEL_RADIUS;
-		
+		row_std_dev = calloc(num_elements, sizeof(float));
+		col_std_dev = calloc(num_elements, sizeof(float));
+
 		// Calculate the wrapped difference of the
 		// wrapped phase angle in the row direction
 		wrapped_diff(phase_diff_rows, WRAPPED_PHASE_ANGLE, NUM_ROWS, NUM_COLS, 1);
 		wrapped_diff(phase_diff_cols, WRAPPED_PHASE_ANGLE, NUM_ROWS, NUM_COLS, 2);
 		
-		// Loop over the array
-		for(r = row_min; r < row_max; r++){
-			for(c = col_min; c < col_max; c++){
-				
-				// Index in the result array
-				sub2ind(ind, r, c, NUM_COLS);
-				
-				// Determine the source rows
-				source_origin_row = r - KERNEL_RADIUS;
-				source_origin_col = c - KERNEL_RADIUS;
-				
-				// Extract the subregion of row differences
-				extract_subregion(row_diffs_region, phase_diff_rows,
-					source_origin_row, source_origin_col, NUM_ROWS, NUM_COLS, kernel_dim, kernel_dim);
-					
-				// Extract the subregion of column differences
-				extract_subregion(col_diffs_region, phase_diff_cols,
-					source_origin_row, source_origin_col, NUM_ROWS, NUM_COLS, kernel_dim, kernel_dim);
-				
-				// Calculate the standard deviations	
-				standard_deviation(row_std_dev, row_diffs_region, kernel_dim * kernel_dim);
-				standard_deviation(col_std_dev, col_diffs_region, kernel_dim * kernel_dim);
-				
-				// Populate the phase quality array result
-				// This is the main thing that this whole entire
-				// code is trying to evaluate. 
-				PHASE_QUALITY_ARRAY[*ind] = (*row_std_dev) + (*col_std_dev);
-			}
-		}
+		// Calculate the moving-window standard deviations
+		moving_std_dev_2D(row_std_dev, phase_diff_rows, NUM_ROWS, NUM_COLS, kernel_dim);
+		moving_std_dev_2D(col_std_dev, phase_diff_cols, NUM_ROWS, NUM_COLS, kernel_dim);
 		
+		// Add the standard deviations to compute the phase quality
+		for(k = 0; k < num_elements; k++){
+			PHASE_QUALITY_ARRAY[k] = row_std_dev[k] + col_std_dev[k];
+		}
+	
 		// Free the memory
-		free(phase_diff_rows);
-		free(phase_diff_cols);
-		free(row_diffs_region);
-		free(col_diffs_region);
 		free(row_std_dev);
 		free(col_std_dev);
-		free(ind);
+		free(phase_diff_rows);
+		free(phase_diff_cols);
 }
 
 void wrapped_diff(float *OUTPUT, float *INPUT, int NUM_ROWS, int NUM_COLS, int DIM){
@@ -303,7 +256,6 @@ void wrapped_diff(float *OUTPUT, float *INPUT, int NUM_ROWS, int NUM_COLS, int D
 	free(ind);
 	free(ind_plusone);
 	free(diff);
-	
 }
 
 void sub2ind(int *ind, int row, int col, int num_cols){
@@ -331,32 +283,165 @@ void sub2ind(int *ind, int row, int col, int num_cols){
 
 }
 
-void standard_deviation(float *RESULT, float *INPUT, int LENGTH){
-// Compute the standard deviation of a contiguous block
-// of memory of length LENGTH.	
+float moving_std_dev_2D(float *DEST_ARRAY, float *DATA_ARRAY,
+int DATA_NUM_ROWS, int DATA_NUM_COLS, int KERNEL_DIM){
+// Compute the moving-window standard deviation of an array	
+// using a symmetric window of length N per side.
 	
-	// Counter
+	// Counters
 	int k;
 	
-	// Declare the mean and standard deviation
-	float mean = 0;
-	float sum_deviation = 0;
+	// Number of elements in the data array
+	int numel_data = DATA_NUM_ROWS * DATA_NUM_COLS;	
 	
-	for(k = 0; k < LENGTH; k++){
-		mean += INPUT[k];
+	// Number of elements in the 2D kernel
+	// Cast as a float because it's only used
+	// for a division
+	float numel_kernel = (float)KERNEL_DIM * (float)KERNEL_DIM;
+
+	// Array to hold the squares of the values
+	float *x2;
+	x2 = malloc(numel_data * sizeof(float));
+	
+	// Populate the squares array
+	for(k = 0; k < numel_data; k++){
+		x2[k] = DATA_ARRAY[k] * DATA_ARRAY[k];
+	}
+
+	// Allocate arrays to hold the intermediate calculations
+	// Sum of the elements
+	float *sum_x;
+	sum_x = calloc(numel_data, sizeof(float));
+	
+	// Sum of the squares of the elements
+	float *sum_x2;
+	sum_x2 = calloc(numel_data, sizeof(float));
+	
+	// Convolution kernel
+	float *kernel_1D;
+	kernel_1D = malloc(KERNEL_DIM * sizeof(float));
+	
+	// Populate the kernel
+	for(k = 0; k < KERNEL_DIM; k++){
+		kernel_1D[k] = 1;
 	}
 	
-	// Divide running sum by the length to get the mean
-	mean = mean / LENGTH;
+	// Calculate the sums
+	conv2_separable(sum_x, DATA_ARRAY, DATA_NUM_ROWS, DATA_NUM_COLS, kernel_1D, KERNEL_DIM);
+	conv2_separable(sum_x2, x2, DATA_NUM_ROWS, DATA_NUM_COLS, kernel_1D, KERNEL_DIM);
 	
-	// Sum the deviations from the mean
-	for(k = 0; k < LENGTH; k++){
-		sum_deviation += (INPUT[k] - mean) * (INPUT[k] - mean);
+	// Calculate the square of the 
+	for(k = 0; k < numel_data; k++){
+		DEST_ARRAY[k] = sqrt( 1.0 / (numel_kernel - 1) * (sum_x2[k] - ((sum_x[k] * sum_x[k]) / numel_kernel)) );
 	}
-	    
-	// Calculate the standard deviation	
-	*RESULT = sqrt(sum_deviation / LENGTH);
+
+	// Free memory
+	free(x2);
+	free(sum_x);
+	free(sum_x2);
+	free(kernel_1D);
 }	
+
+
+void conv2_separable(float *DEST_ARRAY, float *DATA_ARRAY, int DATA_NUM_ROWS, int DATA_NUM_COLS,
+	float *KERNEL_1D, int KERNEL_LENGTH){
+// In-place 2-D convolution with a separable kernel.
+	
+	// Counters
+	int r, c, k;
+	
+	// Running sum
+	float sum;
+		
+	// Determine if the kernel offset
+	// This is the number of elements away from the
+	// edge of the kernel where the result is placed.
+	int kernel_offset = isodd(KERNEL_LENGTH) ? (KERNEL_LENGTH - 1) / 2 : KERNEL_LENGTH / 2;
+	
+	// Data index
+	int *source_ind;
+	source_ind = malloc(sizeof(int));	
+	
+	// Result index
+	int *dest_ind;
+	dest_ind = malloc(sizeof(int));
+	
+	// Number of elements
+	int data_num_elements = DATA_NUM_ROWS * DATA_NUM_COLS;
+		
+	// Max column
+	int col_max = DATA_NUM_COLS - KERNEL_LENGTH + 1; 
+	
+	// Max row
+	int row_max = DATA_NUM_ROWS - KERNEL_LENGTH + 1;
+		
+	// Array to hold intermediate calculations
+	float *conv_array;
+	conv_array = calloc(data_num_elements, sizeof(float));
+	
+	// Perform convolution of the rows
+	for(r = 0; r < DATA_NUM_ROWS; r++){
+		for(c = 0; c < col_max; c++){
+			
+				// Anchor index
+				sub2ind(source_ind, r, c, DATA_NUM_COLS);
+				
+				// Get the index of the border element
+				sub2ind(dest_ind, r, c + kernel_offset, DATA_NUM_COLS);
+				
+				// Initialize the sum
+				sum = 0;
+	
+				// Loop over the kernel, updating the sum for each iteration
+				for(k = 0; k < KERNEL_LENGTH; k++){
+					
+					// Add to the sum
+					sum += ( KERNEL_1D[k] * DATA_ARRAY[*source_ind + k] );				
+				}
+				
+				// Set the value of the destination
+				// to that of the sum.
+				conv_array[*dest_ind] = sum;
+		}
+	}
+		
+	// Now perform convolution of the rows of the result
+	// (this is how separable kernels work)
+	// 
+	// This indexing is a little more annoying
+	// because columns are not contiguous in memory.
+	for(c = 0; c < DATA_NUM_COLS; c++){
+		for(r = 0; r < row_max; r++){
+				
+			// Get the index of the border element
+			sub2ind(dest_ind, r + kernel_offset, c, DATA_NUM_COLS);	
+			
+			// Initialize the sum
+			sum = 0;
+	
+			// Loop over the kernel
+			for(k = 0; k < KERNEL_LENGTH; k++){
+				
+					// Source index
+					sub2ind(source_ind, r + k, c, DATA_NUM_COLS);
+			
+					// Add the result to the total
+					sum += KERNEL_1D[k] * conv_array[*source_ind];
+				}
+				
+			// Put the result in the destination array
+			DEST_ARRAY[*dest_ind] = sum;			
+		}
+	}
+		
+	// Free memory
+	free(conv_array);
+	free(source_ind);
+	free(dest_ind);
+		
+	}
+
+
 
 void extract_subregion(float *DEST_ARRAY, float *SOURCE_ARRAY, int SOURCE_ORIGIN_ROW, int SOURCE_ORIGIN_COL, int SOURCE_NUM_ROWS, int SOURCE_NUM_COLS, int DEST_NUM_ROWS, int DEST_NUM_COLS){
 // This function extracts a chunk of SOURCE_ARRAY and puts it in DEST_ARRAY.
@@ -377,6 +462,9 @@ void extract_subregion(float *DEST_ARRAY, float *SOURCE_ARRAY, int SOURCE_ORIGIN
 	// Allocate space for those pointers
 	source_ind = malloc(sizeof(int));
 	dest_ind = malloc(sizeof(int));
+	
+	// source_ind = calloc(1, sizeof(int));
+	// dest_ind = calloc(1, sizeof(int));
 	
 	// Loop over the rows and columns
 	// of the destination array,  
@@ -466,7 +554,11 @@ double get_time_ms()
 	return (t.tv_sec + (t.tv_usec / 1000000.0)) * 1000.0;
 }
 
-
+int isodd(int number){
+	// Determine if a number is odd
+	// Returns 1 if odd and 0 if even.
+	return number%2;
+}
 
 
 
