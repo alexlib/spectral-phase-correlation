@@ -34,8 +34,12 @@ function [PHASE_MASK] = ...
 	% with origin (r = 0) at geometric centroid of the region
 	[~, r] = cart2pol(x - xc, y - yc);
 	
+    % Thresh
+%     thresh = mean(phase_quality_scaled(:));
+    
+%     phase_quality_bw = logical((imquantize(phase_quality_scaled, thresh)) - 1);
+    
 	% Threshold the phase quality map using histogram equalization
-% 	phase_quality_bw = (histeq(phase_quality_scaled, 2));
     phase_quality_bw = im2bw(phase_quality_scaled, 0.5);
 	
 % 	Set border pixels to 1 to prevent connecting regions via the border
@@ -45,7 +49,8 @@ function [PHASE_MASK] = ...
 	phase_quality_bw(:, end) = 1;
 	
 	% Find properties of all the connected regions in the thresholded image. 
-	phase_quality_region_props = regionprops(~phase_quality_bw, 'Centroid', 'PixelIdxList');
+	phase_quality_region_props = ...
+        regionprops(~phase_quality_bw, 'Centroid', 'PixelIdxList');
 	
 	% Count the number of regions
 	num_regions = length(phase_quality_region_props);

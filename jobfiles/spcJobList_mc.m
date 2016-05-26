@@ -35,7 +35,8 @@ DefaultJob.Parameters.Processing.PhaseUnwrappingAlgorithm = 'GOLDSTEIN';
 DefaultJob.Parameters.Processing.WeightedSpcPlaneFitMethod = 'rpc';
 DefaultJob.Parameters.Processing.PeakFitMethod = '3_point';
 DefaultJob.Parameters.Processing.FilterCutoff = 15;
-DefaultJob.Parameters.Processing.EnsembleLength = 1;
+DefaultJob.Parameters.Processing.Ensemble.Length = 1;
+DefaultJob.Parameters.Processing.Ensemble.Method = 'Complex';
 
 DefaultJob.Parameters.Processing.APC.KernelRadius = 5;
 

@@ -1,5 +1,4 @@
-function  results_save_path = ...
-    correlationErrorAnalysisMonteCarlo_runningEnsemble(MONTE_CARLO_PARAMETERS); 
+function  results_save_path = correlationErrorAnalysisMonteCarlo_runningEnsemble(MONTE_CARLO_PARAMETERS); 
 
 % Parse the input structure
 JobFile = MONTE_CARLO_PARAMETERS.JobFile;
@@ -120,12 +119,6 @@ rpc_plane_ensemble = zeros(region_height, region_width);
 % Weighting matrix for the subpixel fit
 subpixel_weighting_matrix = ones(region_height, region_width);
 
-f = figure(1); 
-f.InvertHardcopy = 'off';
-set(gcf, 'color', 0.1 * [1, 1, 1]);
-v = [-17.1000   15.6000];
-z = 1.5;
-
 % Do the processing.
 for k = 1 : number_of_images
   
@@ -158,19 +151,19 @@ for k = 1 : number_of_images
    
     % This is the complex cross correlation
     complex_correlation =  ...
-        crossCorrelation(region_01, region_02);
+        fftshift(crossCorrelation(region_01, region_02));
     
     % Add to the ensemble
     ensemble_correlation_complex = ensemble_correlation_complex ...
         + fftshift(complex_correlation);
      
     % Calculate the APC filter
-    [apc_filter, ~, phase_angle_plane] = calculate_apc_phase_mask_from_correlation(...
+    [apc_filter, ~, ~] = calculate_apc_phase_mask_from_correlation(...
             ensemble_correlation_complex, apc_kernel_radius,...
             'gaussian', rpc_std);
         
     % APC is always calculated fro the complex ensemble, so do that here.
-    [ty_apc(k), tx_apc(k), apc_plane] = complex_to_filtered_phase_correlation(...
+    [ty_apc(k), tx_apc(k)] = complex_to_filtered_phase_correlation(...
         ensemble_correlation_complex, apc_filter, ...
         subpixel_peak_fit_method_numerical);
 
@@ -180,13 +173,13 @@ for k = 1 : number_of_images
             
             % Calculate the SCC displacement from the 
             % complex-ensembled plane.
-            [ty_scc(k), tx_scc(k), scc_plane_ensemble] = complex_to_scc(...
+            [ty_scc(k), tx_scc(k)] = complex_to_scc(...
                 ensemble_correlation_complex, ...
                 subpixel_peak_fit_method_numerical);
             
             % Calculate the RPC displacement from the
             % complex-ensembled plane.
-            [ty_rpc(k), tx_rpc(k), rpc_plane_ensemble] = ...
+            [ty_rpc(k), tx_rpc(k)] = ...
                 complex_to_filtered_phase_correlation(...
                 ensemble_correlation_complex, rpc_filter, ...
                 subpixel_peak_fit_method_numerical);
@@ -202,9 +195,10 @@ for k = 1 : number_of_images
             % Calculate the RPC ensemble plane, without taking
             % the absolute value. Do normalize by the standard 
             % deviation and the number of pixels in the region.
-            rpc_plane_ensemble = rpc_plane_ensemble + fftshift(...
-                (real(ifft2(rpc_filter .* phaseOnlyFilter(...
-                complex_correlation))))) / ensemble_norm_factor;
+            rpc_plane_ensemble = rpc_plane_ensemble + ...
+                fftshift((real(ifft2(rpc_filter .* ...
+                phaseOnlyFilter(complex_correlation))))) ...
+                 / ensemble_norm_factor;
          
         case 3 % This means sum the absolute real (spatial) planes
             
@@ -239,68 +233,43 @@ for k = 1 : number_of_images
     region_width, region_height, subpixel_weighting_matrix, ...
     subpixel_peak_fit_method_numerical, 0, sqrt(8));
 
-    
+%     
 %     subplot(2, 3, 1)
 %     % Do the different correlation algorithms.
 %     imagesc(phase_angle_plane);
 %     axis image;
 %     axis off
 %     title({'Phase angle', sprintf('Ensemble length: %d', k)});
-%     colormap bone;
-%    
-%     
+% 
 %     subplot(2, 3, 2);
 %     imagesc(apc_filter);
 %     axis image;
 %     axis off
-% %     title({'APC filter', sprintf('Diffusion std dev: %0.1f pix', diffusion_std_dev)});
+%     title({'APC filter', sprintf('Diffusion std dev: %0.1f pix', diffusion_std_dev)});
 % 
 %     subplot(2, 3, 4);
-% %     mesh(scc_plane_ensemble ./ max(scc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-%     surfl(scc_plane_ensemble ./ max(scc_plane_ensemble(:)))
+%     mesh(scc_plane_ensemble ./ max(scc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
 %     axis square
-%     shading interp
 %     axis off
 %     title('SCC');
-%     set(gca, 'view', v);
-%     zoom(z);
-%     xlim([1, region_width]);
-%     ylim([1, region_height]);
-%     zlim([0, 1]);
 % 
 %     subplot(2, 3, 5);
-% %     mesh(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-%     surfl(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)));
-%     shading interp
+%     mesh(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
 %     axis square
 %     axis off
 %     title('RPC');
-%      set(gca, 'view', v);
-%     zoom(z);
-%     xlim([1, region_width]);
-%     ylim([1, region_height]);
-%     zlim([0, 1]);
 % 
 %     subplot(2, 3, 6);
-% %     mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-%     surfl(apc_plane ./ max(apc_plane(:)));
-%     shading interp;
+%     mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black', 'linewidth', 0.1);
 %     axis square
 %     axis off
 %     title('APC');
-%     set(gca, 'view', v);
-%     zoom(z);
-%     xlim([1, region_width]);
-%     ylim([1, region_height]);
-%     zlim([0, 1]);
 %     
 %     drawnow;
-%     
-% 
-% %     
-% %     plot_name = sprintf('corr_plot_%05d.png', k);
-% %     plot_path = fullfile(plot_dir, plot_name);
-% %     print(1, '-dpng', '-r300', plot_path);
+    
+%     plot_name = sprintf('corr_plot_%05d.png', k);
+%     plot_path = fullfile(plot_dir, plot_name);
+%     print(1, '-dpng', '-r300', plot_path);
 
 
 end 
