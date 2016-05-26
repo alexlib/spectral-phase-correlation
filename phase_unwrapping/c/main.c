@@ -3,6 +3,7 @@
 #include <math.h>
 #include <sys/time.h>
 #include "apc.h"
+#include "image_writing.h"
 
 #define PI (3.141592653589793)
 
@@ -32,7 +33,7 @@ int main(int argc, char *argv[]){
 	
 	// Argument for trigonometric function.
 	// used to build the input array
-	float arg;
+	double arg;
 	
 	// Index counter.
 	// The value stored at this pointer's address
@@ -44,14 +45,19 @@ int main(int argc, char *argv[]){
 	ind = malloc(sizeof(int));
 	
 	// Specify the number of rows and columns in the input.
-	int num_rows = 128;
-	int num_cols = 128;
+	int num_rows = 256;
+	int num_cols = 256;
+	
+	// Center of the Gaussian window
+	float noise_xc = (float)num_cols / 2.00;
+	float noise_yc = (float)num_rows / 2.00;
+	float noise_std = (float)num_rows / 5.00;
 	
 	// Signal amplitude
-	float signal_amplitude = 3.0;
+	float signal_amplitude = 10000.00;
 	
 	// Noise amplitude
-	float noise_amplitude = 1.0;
+	float noise_amplitude = 3;
 	
 	// Noise upper and lower bounds
 	float noise_ub = 1.0 * noise_amplitude;
@@ -71,18 +77,41 @@ int main(int argc, char *argv[]){
 	// Allocate the noise array
 	float *noise_array;
 	noise_array = malloc(num_elements * sizeof(float));
+	
+	// Allocate the noise envelope
+	float * envelope;
+	envelope = malloc(num_elements * sizeof(float));
+	
+	// This holds the phase quality as a 16 bit integer.
+	uint16_t *quality_int;
+	quality_int = malloc(num_elements * sizeof(uint16_t));
+	
+	// Image data
+	uint16_t *image_data;
+	image_data = calloc(num_rows * num_cols, sizeof(uint16_t));
+	
+	// Write the phase quality to an image
+	char *output_file_path_raw = "/Users/matthewgiarra/Desktop/image.tiff";
+	
+	char *output_file_path_quality = "/Users/matthewgiarra/Desktop/quality.tiff";
 
 	// Populate the noise array
 	devrand(noise_array, num_elements, noise_lb, noise_ub);
+	
+	// Calculate the noise envelope
+	Gaussian_2D(envelope, num_rows, num_cols, noise_xc, noise_yc, noise_std);
 	
 	// Construct the input array
 	for(r = 0; r < num_rows; r++){
 		for(c = 0; c < num_cols; c++){
 			sub2ind(ind, r, c, num_cols);
-			arg = ((float)c / (float)num_cols) * 2.0 * PI * 2.0;
-			input_array[*ind] = signal_amplitude * cos(arg) + noise_array[*ind];
+			arg = ((double)c / (double)num_cols) * 8.00 * (double)PI;
+			input_array[*ind] = (fmod(arg, 2*PI) + (1 - envelope[*ind])*noise_array[*ind]);
+			image_data[*ind] = (uint16_t)(input_array[*ind] * signal_amplitude);
 		}
 	}
+	
+	// print_array(input_array, num_rows, num_cols);
 	
 	// Machine time at the beginning of the loop
 	double t1 = get_time_ms();
@@ -92,6 +121,20 @@ int main(int argc, char *argv[]){
 	// printf("On loop %d of %d\n", k, nloops);
 		calculate_phase_quality(quality_array, input_array, num_rows, num_cols, kernel_radius);
 	}
+	
+	// Turn the phase quality into a uint16
+	for(r = 0; r < num_rows; r++){
+		for(c = 0; c < num_cols; c++){		
+			sub2ind(ind, r, c, num_cols);
+			quality_int[*ind] = (uint16_t)(10000 * quality_array[*ind]);
+		}
+	}
+
+	// print_array(quality_array, num_rows, num_cols);
+
+	// Write the input to file
+	writeTiff_bw16(output_file_path_raw, image_data, num_rows, num_cols);
+	writeTiff_bw16(output_file_path_quality, quality_int, num_rows, num_cols);
 	
 	// Timing crap
 	// Machine time at the end of the loop
@@ -109,8 +152,11 @@ int main(int argc, char *argv[]){
 	// Free the memory
 	free(input_array);
 	free(quality_array);
+	free(quality_int);
 	free(noise_array);
 	free(ind);
+	free(image_data);
+	free(envelope);
 	
 	// GTFO
 	return(0);
@@ -124,7 +170,6 @@ double get_time_ms()
 	gettimeofday(&t, NULL);
 	return (t.tv_sec + (t.tv_usec / 1000000.0)) * 1000.0;
 }
-
 
 
 

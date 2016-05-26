@@ -26,6 +26,8 @@ int isodd(int number);
 
 void print_array(float *ARRAY, int NUM_ROWS, int NUM_COLS);
 
+void Gaussian_2D(float *ARRAY, int num_rows, int num_cols, float x_center, float y_center, float std_dev);
+
 void calculate_phase_quality(float *PHASE_QUALITY_ARRAY, float *WRAPPED_PHASE_ANGLE,
 	int NUM_ROWS, int NUM_COLS, int KERNEL_RADIUS){
 
@@ -411,6 +413,34 @@ void devrand(float *array, int array_length, float lower_bound, float upper_boun
 		array[k] = rand() / (float)RAND_MAX * (upper_bound - lower_bound) + lower_bound ;
 	}
 }
+
+void Gaussian_2D(float *ARRAY, int num_rows, int num_cols, float x_center, float y_center, float std_dev){
+// Calculate a 2D Gaussian of unity amplitude, cenetered at x_center, y_center
+		
+	// Center row and column
+	int r, c;
+	int *ind;
+	ind = malloc(sizeof(int));
+	
+	// Loop over the array and calculate the Gaussian
+	for(r = 0; r < num_rows; r++){
+		for(c = 0; c < num_cols; c++){
+			
+			// get the index
+			sub2ind(ind, r, c, num_cols);
+			
+			// Calculate the value
+			ARRAY[*ind] = (float)(exp(-(c - x_center) * (c - x_center) / (2.00 * std_dev * std_dev)) 
+				* exp(-(r - y_center) * (r - y_center) / (2.00 * std_dev * std_dev)));
+			
+		}
+	}
+	
+	// Free memory
+	free(ind);	
+}
+
+
 
 void print_array(float *ARRAY, int NUM_ROWS, int NUM_COLS){
 	// This function prints an array row by row.
