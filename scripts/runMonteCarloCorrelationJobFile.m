@@ -63,11 +63,11 @@ for n = 1 : nJobs
     setDigits = 5;
     
     % Numbering format tag for image sets
-    setFormat = ['%0' num2str(setDigits) '.0f'];
+    setFormat = sprintf('%%0%dd', setDigits);
 
     % Number of digits in image names
     imageDigits = 6;
-    imageNumberFormat = ['%0' num2str(imageDigits) '.0f'];
+    imageNumberFormat = sprintf('%%0%dd', imageDigits);
     
     % Construct the path to the repository
     if JobFile.JobOptions.RepositoryPathIsAbsolute
@@ -81,13 +81,13 @@ for n = 1 : nJobs
     caseDir = fullfile(Repository, 'analysis', 'data', imageType,setType, caseName);
 
     % Base names of image sets
-    setBase = [setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_'];
+    setBase = sprintf('%s_h%d_w%d_', setType, regionHeight, regionWidth);
     
     % Image parent directory
-    imageParentDirectory = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], 'raw');
+    imageParentDirectory = fullfile(caseDir, sprintf('%dx%d', regionHeight, regionWidth), 'raw');
 
     % Write directory
-    writeDir = fullfile(caseDir, [num2str(regionHeight) 'x' num2str(regionWidth)], correlation_type);
+    writeDir = fullfile(caseDir, sprintf('%dx%d', regionHeight, regionWidth), correlation_type);
 
     % Make the write directory if it doesn't exist
     if ~exist(writeDir, 'dir')
@@ -112,39 +112,43 @@ for n = 1 : nJobs
     % Flag specifying whether the job is APC
     isApc = ~isempty(regexpi(correlation_type, 'apc'));
     
-    % Base names of results files
-    if isSpc
-        
-        % Processing parameters specific to SPC
-        phase_unwrapping_algorithm = lower(JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm);
-        filter_list = lower(JobFile.Parameters.Processing.PhaseFilterList);
-        
-        % Base name of the saved file (SPC)
-        saveBase = [...
-            'errorAnalysis_' setType ...
-            '_' correlation_type ...
-            '_h' num2str(regionHeight)...
-            '_w' num2str(regionWidth) ...
-            '_unwrap_' phase_unwrapping_algorithm...
-            '_filt_'];
-        
-        % Append all the filter names to the filename
-        for k = 1 : length(filter_list)
-            saveBase = cat(2, saveBase, [filter_list{k} '_']);
-        end
-        
-        % Append the plane weight method
-        saveBase = cat(2, saveBase, ['weights_' weighted_spc_plane_fit_method '_']);
-            
-    else
-        
-        % Base name of the saved file (non-SPC)
-        saveBase = [...
-            'errorAnalysis_' setType ...
-            '_' correlation_type ...
-            '_h' num2str(regionHeight) ...
-            '_w' num2str(regionWidth) '_'];
-    end
+    % Format the save base name
+    saveBase = JobFile.Filepaths.Output.BaseName;
+    
+    
+%     % Base names of results files
+%     if isSpc
+%         
+%         % Processing parameters specific to SPC
+%         phase_unwrapping_algorithm = lower(JobFile.Parameters.Processing.PhaseUnwrappingAlgorithm);
+%         filter_list = lower(JobFile.Parameters.Processing.PhaseFilterList);
+% 
+%         % Base name of the saved file (SPC)
+%         saveBase = [...
+%             'errorAnalysis_' setType ...
+%             '_' correlation_type ...
+%             '_h' num2str(regionHeight)...
+%             '_w' num2str(regionWidth) ...
+%             '_unwrap_' phase_unwrapping_algorithm...
+%             '_filt_'];
+%         
+%         % Append all the filter names to the filename
+%         for k = 1 : length(filter_list)
+%             saveBase = cat(2, saveBase, [filter_list{k} '_']);
+%         end
+%         
+%         % Append the plane weight method
+%         saveBase = cat(2, saveBase, ['weights_' weighted_spc_plane_fit_method '_']);
+%             
+%     else
+%         
+%         % Base name of the saved file (non-SPC)
+%         saveBase = [...
+%             'errorAnalysis_' setType ...
+%             '_' correlation_type ...
+%             '_h' num2str(regionHeight) ...
+%             '_w' num2str(regionWidth) '_'];
+%     end
   
     % Loop over all the sets
     for k = 1 : nSets    
@@ -156,7 +160,7 @@ for n = 1 : nJobs
 
          % Specify directory containing images
         image_dir = fullfile( imageParentDirectory, [ setBase num2str( setList(k), setFormat ) ], 'raw' ); % Image directory
-
+       
         % Path to the raw image file
         image_file_path = fullfile(image_dir, ['raw_image_matrix_' setType '_h' num2str(regionHeight) '_w' num2str(regionWidth) '_seg_' num2str(1, imageNumberFormat) '_' num2str(images_per_set, imageNumberFormat) '.mat'] );
 

@@ -1,16 +1,20 @@
 function JOBLIST = spcJobList_mc()
 
-DefaultJob.JobOptions.ParallelProcessing = 1;
+DefaultJob.JobOptions.ParallelProcessing = true;
 DefaultJob.JobOptions.NumberOfDigits = 6;
 DefaultJob.JobOptions.BooleanGenerateParticleImages = false;
 DefaultJob.JobOptions.BooleanRunAnalysis = true;
 DefaultJob.JobOptions.FlipYTranslation = false;
 DefaultJob.JobOptions.SkipExistingSets = false;
-DefaultJob.JobOptions.RepositoryPathIsAbsolute = 1;
+DefaultJob.JobOptions.RepositoryPathIsAbsolute = true;
 DefaultJob.JobOptions.DoAffineTransform = 0;
-DefaultJob.JobOptions.ZeroMeanRegions = 1;
-DefaultJob.JobOptions.RunCompiled = 1;
-DefaultJob.JobOptions.SuppressMessages = 0;
+DefaultJob.JobOptions.ZeroMeanRegions = true;
+DefaultJob.JobOptions.RunCompiled = true;
+DefaultJob.JobOptions.SuppressMessages = false;
+DefaultJob.JobOptions.MakePlots = false;
+
+% Output file base name
+DefaultJob.Filepaths.Output.BaseName = 'piv_test_';
 
 DefaultJob.ImageType = 'synthetic';
 DefaultJob.SetType = 'mc';
