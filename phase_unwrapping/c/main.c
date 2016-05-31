@@ -130,8 +130,6 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	// print_array(quality_array, num_rows, num_cols);
-
 	// Write the input to file
 	writeTiff_bw16(output_file_path_raw, image_data, num_rows, num_cols);
 	writeTiff_bw16(output_file_path_quality, quality_int, num_rows, num_cols);

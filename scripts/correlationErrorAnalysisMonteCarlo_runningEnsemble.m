@@ -1,6 +1,8 @@
 function  results_save_path = ...
     correlationErrorAnalysisMonteCarlo_runningEnsemble(MONTE_CARLO_PARAMETERS); 
 
+
+
 % Parse the input structure
 JobFile = MONTE_CARLO_PARAMETERS.JobFile;
 results_save_path = MONTE_CARLO_PARAMETERS.Save_Path;
@@ -131,6 +133,7 @@ if makePlots
     z = 1.5;
 end
 
+
 % Do the processing.
 for k = 1 : number_of_images
   
@@ -147,9 +150,9 @@ for k = 1 : number_of_images
     % Zero mean the regions, or not
     if zero_mean_regions
          region_01 = zero_mean_region(...
-             region_matrix_01) .* spatial_window;
+             region_matrix_01) .* spatial_window ;
           region_02 = zero_mean_region(...
-             region_matrix_02) .* spatial_window;
+             region_matrix_02) .* spatial_window ;
     else
         % Read the raw images
         region_01 = region_matrix_01 .* spatial_window;
@@ -182,14 +185,14 @@ for k = 1 : number_of_images
     % Add the signed SCC to its ensemble.
     scc_plane_ensemble_signed = scc_plane_ensemble_signed + ...
         scc_ifft_signed;
+    
+    % Add the absolute SCC to its ensemble
+    scc_plane_ensemble_abs = scc_plane_ensemble_abs + ...
+        abs(scc_ifft_signed);
 
     % Add the signed RPC to its ensemble.
     rpc_plane_ensemble_signed = rpc_plane_ensemble_signed + ...
         rpc_ifft_signed;
-
-    % Add the absolute SCC to its ensemble
-    scc_plane_ensemble_abs = scc_plane_ensemble_abs + ...
-        abs(scc_ifft_signed);
 
     % Add the absolute RPC to its ensemble
     rpc_plane_ensemble_abs = rpc_plane_ensemble_abs + ...
@@ -197,7 +200,7 @@ for k = 1 : number_of_images
 
     % Signed SCC ensemble displacements
     [tx_scc_signed(k), ty_scc_signed(k)] = ...
-        subpixel(scc_plane_ensemble_signed, ...
+        subpixel(abs(scc_plane_ensemble_signed), ...
     region_width, region_height, subpixel_weighting_matrix, ...
     subpixel_peak_fit_method_numerical, 0, sqrt(8));
 
@@ -209,13 +212,13 @@ for k = 1 : number_of_images
 
     % Signed RPC ensemble displacements
     [tx_rpc_signed(k), ty_rpc_signed(k)] = ...
-        subpixel(scc_plane_ensemble_signed, ...
+        subpixel(abs(rpc_plane_ensemble_signed), ...
     region_width, region_height, subpixel_weighting_matrix, ...
     subpixel_peak_fit_method_numerical, 0, sqrt(8));
 
     % Absolute RPC ensemble displacements
     [tx_rpc_abs(k), ty_rpc_abs(k)] = ...
-        subpixel(scc_plane_ensemble_abs, ...
+        subpixel(rpc_plane_ensemble_abs, ...
     region_width, region_height, subpixel_weighting_matrix, ...
     subpixel_peak_fit_method_numerical, 0, sqrt(8));
 
@@ -235,13 +238,13 @@ for k = 1 : number_of_images
     [apc_filter, ~, phase_angle_plane] = ...
         calculate_apc_phase_mask_from_correlation(...
         ensemble_correlation_complex, apc_kernel_radius,...
-        'gaussian', rpc_std);
+        'symmetric', rpc_std);
 
     % APC displacements
-    [ty_apc(k), tx_apc(k), apc_plane] = complex_to_filtered_phase_correlation(...
+    [ty_apc(k), tx_apc(k), apc_plane] = ...
+        complex_to_filtered_phase_correlation(...
     ensemble_correlation_complex, apc_filter, ...
     subpixel_peak_fit_method_numerical);
-
 
     % Make plots if requested
     if makePlots
@@ -307,7 +310,6 @@ for k = 1 : number_of_images
 %     print(1, '-dpng', '-r300', plot_path);
         
     end
-
 end 
 
 % Save the output data

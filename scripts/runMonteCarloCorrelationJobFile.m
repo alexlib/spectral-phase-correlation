@@ -156,7 +156,7 @@ for n = 1 : nJobs
         % Print message
         fprintf(1, ['Analyzing set ' ...
              correlation_type ' ' caseName ' ' setBase num2str(setList(k), setFormat) ' (' num2str(k)...
-             ' of ' num2str(nSets) ')... ']); % Display status
+             ' of ' num2str(nSets) ')... \n\n']); % Display status
 
          % Specify directory containing images
         image_dir = fullfile( imageParentDirectory, [ setBase num2str( setList(k), setFormat ) ], 'raw' ); % Image directory

@@ -16,6 +16,10 @@ spectral_magnitude(COMPLEX_CROSS_CORRELATION_PLANE == 0 ) = 1;
 PHASE_ONLY_CORRELATION_PLANE = COMPLEX_CROSS_CORRELATION_PLANE ./ ...
     spectral_magnitude;
 
+% Divide cross correlation by its nonzero magnitude to extract the phase information
+% PHASE_ONLY_CORRELATION_PLANE = COMPLEX_CROSS_CORRELATION_PLANE ./ ...
+%     abs(COMPLEX_CROSS_CORRELATION_PLANE);
+
 end
 
 

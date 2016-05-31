@@ -1,168 +1,195 @@
+% File directory
+data_repo = '~/Desktop/spectral-phase-correlation/analysis/data/synthetic/mc';
 
+% Font size
+fSize = 18;
 
-fSize = 14;
+% Flow rate
+flow_rate = 10.0;
 
+% Case names
+case_name = sprintf('piv_test_running_ensemble_15_ppf_q_%0.1f_ul_min', flow_rate);
 
-q = 0.5;
+% Data directory
+data_dir = fullfile(data_repo, case_name, '128x128', 'apc');
 
-switch q
-    case 0.5
-        ylim_mean = [0, 5];
-        ylim_std = [0, 2];
-    case 5.0
-        ylim_mean = [0, 0.2];
-        ylim_std = [0, 0.1];
+% Get dir info
+dir_data = dir(data_dir);
+
+% Data base name
+data_file_base_name = case_name;
+
+% Number of files to plot (user specified)
+num_files = length(dir_data);
+
+% If the code below is reached, then
+% at least one matching file was found.
+
+% Read the first file to get the number
+% of data points it contains.
+% Data path
+k = 1;
+
+% Define found flag
+file_found = 0;
+
+while (file_found == 0) && k < num_files
+    % Data name
+    data_name = sprintf('%s_%05d.mat', case_name, k);
+    
+    % Data path
+    data_path = fullfile(data_dir, data_name);
+    
+    % Load the file if it exists
+    if(exist(data_path, 'file'))
+       
+        % Load the data
+        load(data_path);
         
-    case 50
-      ylim_mean = [0, 0.1];
-      ylim_std = [0, 0.1];
+        % set flag to found
+        file_found = 1;
+    end
+    
+    % Increment counter
+    k = k + 1;
     
 end
 
 
-file_base_name = 'errorAnalysis_mc_apc_h128_w128_';
+% Measure the length of the data
+num_points = length(TX_TRUE);
 
-% repo_dir = '~/Documents/School/VT/Research/Aether/apc/apc_mc_translation_errors';
-repo_dir = '~/Desktop/mc/complex_ensemble';
+% Allocate arrays for SCC errors
+err_mag_scc_complex = zeros(num_points, 1);
+err_mag_scc_signed  = zeros(num_points, 1);
+err_mag_scc_abs     = zeros(num_points, 1);
 
-is_signed_ensemble = ~isempty(regexpi(repo_dir, 'sig'));
-is_complex_ensemble = ~isempty(regexpi(repo_dir, 'complex'));
-is_abs_ensemble = ~isempty(regexpi(repo_dir, 'abs'));
+% Allocate arrays for RPC errors
+err_mag_rpc_complex = zeros(num_points, 1);
+err_mag_rpc_abs     = zeros(num_points, 1);
+err_mag_rpc_signed  = zeros(num_points, 1);
 
-if is_signed_ensemble
-    title_str = { sprintf('$\\textrm{Signed spatial ensemble} $'), ...
-        sprintf('$\\textrm{Abs}\\left( \\sum \\limits_{n} \\mathcal{F}^{-1}\\left( F_1 F_2 \\right)_n \\right)$')};
-    plot_dir = '~/Desktop/apc_plots/spatial_signed_ensemble';
-elseif is_abs_ensemble
-    title_str = { sprintf('$\\textrm{Absolute spatial ensemble}$'), ...
-        sprintf('$\\sum \\limits_{n} \\mathrm{Abs} \\left( \\mathcal{F}^{-1}\\left( F_1 F_2 \\right)_n \\right)$')};
-    plot_dir = '~/Desktop/apc_plots/spatial_abs_ensemble';
-elseif is_complex_ensemble
-    title_str = {sprintf('$\\textrm{Complex ensemble}$'), ...
-        sprintf('$\\textrm{Abs} \\left( \\mathcal{F}^{-1} \\left( \\sum \\limits_{n} \\left(F_1 F_2 \\right)_n \\right) \\right) $')};
-    plot_dir = '~/Desktop/apc_plots/complex_ensemble';
-end
+% Allocate arrays for APC errors
+err_mag_apc         = zeros(num_points, 1);
 
-
-data_dir = fullfile(repo_dir, sprintf('q_%0.1f', q));
-
-
-
-start_file = 1;
-end_file = 99;
-skip_file = 1;
-
-pairs_per_set = 1E4;
-
-file_nums = start_file : skip_file : end_file;
-
-num_files = length(file_nums);
-
-% Allocate the error vectors
-err_mag_scc = zeros(pairs_per_set, num_files);
-err_mag_rpc = zeros(pairs_per_set, num_files);
-err_mag_apc = zeros(pairs_per_set, num_files);
-
+% Number of valid files
+num_valid = 0;
 
 for k = 1 : num_files
-   
-    fprintf(1, 'On %d of %d\n', k, num_files);
+     % Data name
+    file_name = dir_data(k).name;
     
-    % construct the file path
-    file_name = sprintf('%s%05d.mat', file_base_name, file_nums(k));
-    file_path = fullfile(data_dir, file_name);
+    % Valid file?
+    valid_file = ~isempty(regexpi(file_name, '.mat'));
     
-    % Load the file
-    load(file_path);
-    
-    % Calculate the error
-    tx_err_scc = (TX_TRUE - tx_scc);
-    ty_err_scc = (TY_TRUE - ty_scc);
-    err_mag_scc(:, k) = sqrt(ty_err_scc.^2 + tx_err_scc.^2);
-
-    tx_err_rpc = (TX_TRUE - tx_rpc);
-    ty_err_rpc = (TY_TRUE - ty_rpc);
-    err_mag_rpc(:, k) = sqrt(ty_err_rpc.^2 + tx_err_rpc.^2);
-
-    tx_err_apc = (TX_TRUE - tx_apc);
-    ty_err_apc = (TY_TRUE - ty_apc);
-    err_mag_apc(:, k) = sqrt(ty_err_apc.^2 + tx_err_apc.^2);
-
-    
-  
+    if valid_file
+        num_valid = num_valid + 1;
+    end
 end
 
-pair_vect = 1 : length(err_mag_scc);
-pair_vect_tick = pair_vect / 10^3;
+% Initialize number loaded
+num_loaded = 0;
 
+% Sum vector
+% Loop over all the files
+for k = 1 : num_files
 
-err_mag_scc_mean = mean(err_mag_scc, 2);
-err_mag_rpc_mean = mean(err_mag_rpc,2);
-err_mag_apc_mean = mean(err_mag_apc, 2);
+    % Data name
+    file_name = dir_data(k).name;
+    
+    % Valid file?
+    valid_file = ~isempty(regexpi(file_name, '.mat'));
+    
+    % Proceed if file exists.
+    if valid_file;
+    
+        % Data path
+        data_path = fullfile(data_dir, data_name);
+    
+        % Load the data
+        load(data_path);
+        
+        % Increment the number of loaded files
+        num_loaded = num_loaded + 1;
+        
+         % Inform the user
+        fprintf(1, 'Loading file %d of %d...\n', num_loaded, num_valid);
 
-err_mag_scc_std = std(err_mag_scc, [], 2);
-err_mag_rpc_std = std(err_mag_rpc, [], 2);
-err_mag_apc_std = std(err_mag_apc,[], 2);
+        % Calculate the signed displacement errors for SCC
+        err_tx_scc_complex = TX_TRUE - tx_scc_complex;
+        err_ty_scc_complex = TY_TRUE - ty_scc_complex;
+        err_tx_scc_abs     = TX_TRUE - tx_scc_abs;
+        err_ty_scc_abs     = TY_TRUE - ty_scc_abs;
+        err_tx_scc_signed  = TX_TRUE - tx_scc_signed;
+        err_ty_scc_signed  = TY_TRUE - ty_scc_signed;
+
+        % Calculate the signed displacement errors for RPC
+        err_tx_rpc_complex = TX_TRUE - tx_rpc_complex;
+        err_ty_rpc_complex = TY_TRUE - ty_rpc_complex;
+        err_tx_rpc_abs     = TX_TRUE - tx_rpc_abs;
+        err_ty_rpc_abs     = TY_TRUE - ty_rpc_abs;
+        err_tx_rpc_signed  = TX_TRUE - tx_rpc_signed;
+        err_ty_rpc_signed  = TY_TRUE - ty_rpc_signed;
+
+        % Calculate the signed displacement errors for APC
+        err_tx_apc         = TX_TRUE - tx_apc;
+        err_ty_apc         = TY_TRUE - ty_apc;
+
+        % Calculate the error magnitudes for SCC
+        err_mag_scc_complex = err_mag_scc_complex + sqrt(err_tx_scc_complex.^2 + err_ty_scc_complex.^2);
+        err_mag_scc_abs  = err_mag_scc_abs + sqrt(err_tx_scc_abs.^2 + err_ty_scc_abs.^2);
+        err_mag_scc_signed  = err_mag_scc_signed + sqrt(err_tx_scc_signed.^2 + err_ty_scc_signed.^2);
+
+        % Calculate the error magnitudes for RPC
+        err_mag_rpc_complex = err_mag_rpc_complex + sqrt(err_tx_rpc_complex.^2 + err_ty_rpc_complex.^2);
+        err_mag_rpc_abs  = err_mag_rpc_abs + sqrt(err_tx_rpc_abs.^2 + err_ty_rpc_abs.^2);
+        err_mag_rpc_signed  = err_mag_rpc_signed + sqrt(err_tx_rpc_signed.^2 + err_ty_rpc_signed.^2);
+
+        % Calculate the error magnitudes for APC
+        err_mag_apc         = err_mag_apc + sqrt(err_tx_apc.^2 + err_ty_apc.^2);
+    end
+    
+end
+
+% Print the number loaded
+fprintf('%d files loaded.\n', num_loaded);
+
+% Divide each SCC error by the number of files to get the mean errors
+err_mean_scc_complex = err_mag_scc_complex / num_loaded;
+err_mean_scc_abs     = err_mag_scc_abs / num_loaded;
+err_mean_scc_signed  = err_mag_scc_signed  / num_loaded;
+
+% Divide each RPC error by the number of files to get the mean errors
+err_mean_rpc_complex = err_mag_rpc_complex / num_loaded;
+err_mean_rpc_abs     = err_mag_rpc_abs / num_loaded;
+err_mean_rpc_signed  = err_mag_rpc_signed  / num_loaded;
+
+% Divide the APC error by the number of files to get the mean errors
+err_mean_apc         = err_mag_apc / num_loaded;
 
 figure(1);
-plot(pair_vect_tick, err_mag_scc_mean, '-k', 'linewidth', 2);
+
+% Plot the results
+%
+% Plot APC errors
+plot(err_mean_apc, '-b', 'linewidth', 2);
 hold on
-plot(pair_vect_tick, err_mag_rpc_mean, '-r', 'linewidth', 2);
-plot(pair_vect_tick, err_mag_apc_mean, '-b', 'linewidth', 2);
+
+% Plot SCC errors
+plot(err_mean_scc_complex, '-k', 'linewidth',  2)
+plot(err_mean_scc_abs, '--k', 'linewidth',  2)
+plot(err_mean_scc_signed, ':k', 'linewidth',  2)
+
+plot(err_mean_rpc_complex, '-r', 'linewidth',  2)
+plot(err_mean_rpc_abs, '--r', 'linewidth',  2)
+plot(err_mean_rpc_signed, ':r', 'linewidth',  2)
+
 hold off
 axis square
-title({sprintf('$ \\textrm{Mean error,} \\, q = %0.2f \\, \\mu \\textrm{L} / \\textrm{min}$', q), ...
-    title_str{1}, title_str{2}}, ...
-    'FontSize', fSize, 'interpreter', 'latex');
-h = legend('SCC', sprintf('RPC$\\left( d= \\sqrt{8} \\right)$'), 'APC');
-set(h, 'interpreter', 'latex')
-set(h, 'fontsize', fSize);
-xlabel('Ensemble length (thousands of pairs)', 'FontSize', fSize);
-ylabel('Error magnitude (pixels)', 'FontSize', fSize);
-set(gca, 'FontSize', fSize);
 grid on
-ylim(ylim_mean);
-% set(gca, 'ytick', 1 * [0 : 5])
-
-
-figure(2); 
-plot(pair_vect_tick, err_mag_scc_std, '-k', 'linewidth', 2);
-hold on
-plot(pair_vect_tick, err_mag_rpc_std, '-r', 'linewidth', 2);
-plot(pair_vect_tick, err_mag_apc_std, '-b', 'linewidth', 2);
-hold off
-axis square
-title({sprintf('$ \\textrm{Std dev error,} \\, q = %0.2f \\, \\mu \\textrm{L} / \\textrm{min}$', q), ...
-    title_str{1}, title_str{2}}, ...
-    'FontSize', fSize, 'interpreter', 'latex');
-h = legend('SCC', sprintf('RPC$\\left( d= \\sqrt{8} \\right)$'), 'APC');
-set(h, 'interpreter', 'latex')
-set(h, 'fontsize', fSize);
-ylim(ylim_std);
-% set(gca, 'ytick', 0.1 * [0 : 5])
-
-set(h, 'fontsize', fSize);
-xlabel('Ensemble length (thousands of pairs)', 'FontSize', fSize);
-ylabel('Error Std Dev (pixels)', 'FontSize', fSize);
-set(gca, 'FontSize', fSize);
-grid on
-
-std_dev_plot_name = sprintf('apc_std_dev_err_q_%0.1f.png', q);
-mean_plot_name = sprintf('apc_mean_err_q_%0.1f.png', q);
-
-std_dev_plot_path = fullfile(plot_dir, std_dev_plot_name);
-mean_plot_path = fullfile(plot_dir, mean_plot_name);
-
-print(1, '-dpng', '-r300', mean_plot_path);
-print(2, '-dpng', '-r300', std_dev_plot_path);
-
-% 
-% 
-
-
-
-
-
+ylim([0, 10]);
+set(gca, 'fontsize', fSize);
+title('Mean errors', 'FontSize', fSize);
 
 
 

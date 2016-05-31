@@ -11,7 +11,7 @@ DefaultJob.JobOptions.DoAffineTransform = 0;
 DefaultJob.JobOptions.ZeroMeanRegions = true;
 DefaultJob.JobOptions.RunCompiled = true;
 DefaultJob.JobOptions.SuppressMessages = false;
-DefaultJob.JobOptions.MakePlots = false;
+DefaultJob.JobOptions.MakePlots = true;
 
 % Output file base name
 DefaultJob.Filepaths.Output.BaseName = 'piv_test_';

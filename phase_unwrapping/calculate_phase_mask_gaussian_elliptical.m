@@ -1,7 +1,7 @@
 function [PHASE_MASK] = ...
-    calculate_phase_mask_gaussian(PHASE_QUALITY, KERNEL_RADIUS, MAX_STD)
+    calculate_phase_mask_gaussian_elliptical(PHASE_QUALITY, KERNEL_RADIUS, MAX_STD)
 	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
-		
+	
     % Defualt to no maximum standard deviation
     if nargin < 3
         MAX_STD = inf;
@@ -98,10 +98,7 @@ function [PHASE_MASK] = ...
 		
 	% Find the minimum
 	[~, region_weighted_centroid_idx_phase] = min(region_weighted_centroid_radial);
-    
-    % Convert this to the index in an array with the same size
-    % as the original images.
-	
+   
 	% Mask indices in the phase matrix
     mask_idx_phase = phase_quality_region_props(...
         region_weighted_centroid_idx_phase).PixelIdxList;
@@ -135,7 +132,7 @@ function [PHASE_MASK] = ...
     
     % Measure the orientation angle of
     % the best fit ellipse and convert it to radians.
-%     ax_angle = 1 * deg2rad(phase_mask_region_props.Orientation);
+    ax_angle = 1 * deg2rad(phase_mask_region_props.Orientation);
     
     % Gaussian standard deviations as fractions
     % of the major and minor axes of the ellipse fit
@@ -144,28 +141,14 @@ function [PHASE_MASK] = ...
     % standard deviation of the normal RPC filter.
     std_maj = min(ax_maj / 2.00, MAX_STD);
     std_min = min(ax_min / 2.00, MAX_STD);
-    std_maj = min(ax_maj / 2.00, MAX_STD);
-    std_min = min(ax_min / 2.00, MAX_STD);
-    
-    % Standard deviation to use
-    std_dev = min([std_maj, std_min, MAX_STD]);
-    
-%     % Rotate the coordinates for the elliptical Gaussian
-%     x2 = (x_region - xc_region) * cos(ax_angle) - (y_region - yc_region) * sin(ax_angle);
-%     y2 = (x_region - xc_region) * sin(ax_angle) + (y_region - yc_region) * cos(ax_angle);
 
-    % This is the phase mask.
-    PHASE_MASK = exp((- (x_region - xc_region).^2 -(y_region - yc_region).^2 ) / (2 * std_dev^2));
+    % Rotate the coordinates for the elliptical Gaussian
+    x2 = (x_region - xc_region) * cos(ax_angle) - (y_region - yc_region) * sin(ax_angle);
+    y2 = (x_region - xc_region) * sin(ax_angle) + (y_region - yc_region) * cos(ax_angle);
     
-    
-%     % Calculate the Gaussian function
-%     PHASE_MASK = exp(-(x2.^2)/(2 * std_maj^2) - (y2.^2) / (2 * std_min^2));
-%     
-%     % Insert the cropped mask into the phase
-%     % quality matrix, so that it's the same
-%     % size as the original phase matrix.
-%     PHASE_MASK = zeros(size(PHASE_QUALITY));
-%     PHASE_MASK(rad + 1 : end - rad - 1, rad + 1 : end - rad - 1) = gaussian_mask;
+    % Calculate the Gaussian function
+     % This is the phase mask.
+    PHASE_MASK = exp(-(x2.^2)/(2 * std_maj^2) - (y2.^2) / (2 * std_min^2));
   
 end
 
