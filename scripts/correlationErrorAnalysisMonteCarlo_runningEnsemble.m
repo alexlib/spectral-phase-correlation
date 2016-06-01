@@ -166,11 +166,11 @@ for k = 1 : number_of_images
    
     % This is the complex cross correlation
     complex_correlation =  ...
-        crossCorrelation(region_01, region_02);
+        fftshift(crossCorrelation(region_01, region_02));
     
     % Add to the ensemble
     ensemble_correlation_complex = ensemble_correlation_complex ...
-        + fftshift(complex_correlation);
+        + complex_correlation;
           
     % Signed inverse FT of SCC 
     scc_ifft_signed = ...
@@ -223,13 +223,13 @@ for k = 1 : number_of_images
     subpixel_peak_fit_method_numerical, 0, sqrt(8));
 
     % Complex ensemble SCC displacements
-    [ty_scc_complex(k), tx_scc_complex(k), scc_plane_ensemble] =...
+    [ty_scc_complex(k), tx_scc_complex(k), scc_plane_ensemble_complex] =...
         complex_to_scc(...
         ensemble_correlation_complex, ...
         subpixel_peak_fit_method_numerical);
 
     % Complex ensemble RPC displacements
-    [ty_rpc_complex(k), tx_rpc_complex(k), rpc_plane_ensemble] = ...
+    [ty_rpc_complex(k), tx_rpc_complex(k), rpc_plane_ensemble_complex] = ...
         complex_to_filtered_phase_correlation(...
         ensemble_correlation_complex, rpc_filter, ...
         subpixel_peak_fit_method_numerical);
@@ -265,7 +265,7 @@ for k = 1 : number_of_images
 
         subplot(2, 3, 4);
     %     mesh(scc_plane_ensemble ./ max(scc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-        surfl(scc_plane_ensemble ./ max(scc_plane_ensemble(:)))
+        surfl(abs(scc_plane_ensemble_signed) ./ max(abs(scc_plane_ensemble_signed(:))));
         axis square
         shading interp
         axis off
@@ -278,7 +278,7 @@ for k = 1 : number_of_images
 
         subplot(2, 3, 5);
     %     mesh(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-        surfl(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)));
+        surfl(abs(rpc_plane_ensemble_signed) ./ max(abs(rpc_plane_ensemble_signed(:))));
         shading interp
         axis square
         axis off
