@@ -5,10 +5,10 @@ data_repo = '~/Desktop/spectral-phase-correlation/analysis/data/synthetic/mc';
 fSize = 18;
 
 % Flow rate
-flow_rate = 50;
+flow_rate = 0.5;
 
 % Case names
-case_name = sprintf('piv_test_running_ensemble_15_ppf_no_diffusion_q_%0.1f_ul_min', flow_rate);
+case_name = sprintf('piv_test_running_ensemble_15_ppf_q_%0.1f_ul_min', flow_rate);
 
 % Data directory
 data_dir = fullfile(data_repo, case_name, '128x128', 'apc');
@@ -128,7 +128,7 @@ for k = 1 : num_files
         
          % Inform the user
         fprintf(1, 'Loading file %d of %d...\n', num_loaded, num_valid);
-
+        
         % Calculate the signed displacement errors for SCC
         err_tx_scc_complex = TX_TRUE - tx_scc_complex;
         err_ty_scc_complex = TY_TRUE - ty_scc_complex;
@@ -229,6 +229,8 @@ err_std_rpc_abs     = sqrt(1 / (num_loaded - 1) * (err_mag_rpc_abs_sqr     - err
 err_std_apc         =  sqrt(1 / (num_loaded - 1) * (err_mag_apc_sqr        - err_mag_apc .^2        / num_loaded));
 
 
+line_width = 1.5;
+
 % Mean Errors
 figure(1);
 % Plot the results
@@ -238,13 +240,13 @@ plot(err_mean_apc, '-b', 'linewidth', 4);
 hold on
 
 % Plot SCC errors
-plot(err_mean_scc_complex, '-k', 'linewidth',  2)
-plot(err_mean_scc_abs, '--k', 'linewidth',  2)
-plot(err_mean_scc_signed, ':k', 'linewidth',  2)
+plot(err_mean_scc_complex, '-k', 'linewidth',  line_width)
+plot(err_mean_scc_abs, '--k', 'linewidth',  line_width)
+plot(err_mean_scc_signed, ':k', 'linewidth',  line_width)
 
-plot(err_mean_rpc_complex, '-r', 'linewidth',  2)
-plot(err_mean_rpc_abs, '--r', 'linewidth',  2)
-plot(err_mean_rpc_signed, ':r', 'linewidth',  2)
+plot(err_mean_rpc_complex, '-r', 'linewidth',  line_width)
+plot(err_mean_rpc_abs, '--r', 'linewidth',  line_width)
+plot(err_mean_rpc_signed, ':r', 'linewidth',  line_width)
 
 hold off
 axis square
@@ -265,7 +267,7 @@ set(h, 'FontSize', 12);
 % set(h, 'location', 'southeast');
 set(h, 'location', 'northeast');
 set(gca, 'fontsize', fSize);
-ylim([0, 5]);
+ylim([0, 2]);
 
 % % % Std Dev Error
 figure(2);
@@ -273,17 +275,17 @@ figure(2);
 % Plot the results
 %
 % Plot APC errors
-plot(err_std_apc, '-b', 'linewidth', 4);
+plot(err_std_apc, '-b', 'linewidth', 2 * line_width);
 hold on
 
 % Plot SCC errors
-plot(err_std_scc_complex, '-k', 'linewidth',  2)
-plot(err_std_scc_abs, '--k', 'linewidth',  2)
-plot(err_std_scc_signed, ':k', 'linewidth',  2)
+plot(err_std_scc_complex, '-k', 'linewidth',  line_width)
+plot(err_std_scc_abs, '--k', 'linewidth',  line_width)
+plot(err_std_scc_signed, ':k', 'linewidth',  line_width)
 
-plot(err_std_rpc_complex, '-r', 'linewidth',  2)
-plot(err_std_rpc_abs, '--r', 'linewidth',  2)
-plot(err_std_rpc_signed, ':r', 'linewidth',  2)
+plot(err_std_rpc_complex, '-r', 'linewidth',  line_width)
+plot(err_std_rpc_abs, '--r', 'linewidth',  line_width)
+plot(err_std_rpc_signed, ':r', 'linewidth',  line_width)
 
 hold off
 axis square
@@ -304,7 +306,7 @@ set(h, 'FontSize', 12);
 % set(h, 'location', 'southeast');
 set(h, 'location', 'northeast');
 set(gca, 'fontsize', fSize);
-ylim([0, 10]);
+ylim([0, 0.5]);
 
 plot_dir_mean = '~/Desktop/mc_plots/mean';
 plot_dir_std = '~/Desktop/mc_plots/std';
@@ -312,8 +314,14 @@ plot_name_mean = sprintf('mean_error_q_%0.1f.png', flow_rate);
 plot_name_std = sprintf('std_error_q_%0.1f.png', flow_rate);
 plot_path_mean = fullfile(plot_dir_mean, plot_name_mean);
 plot_path_std = fullfile(plot_dir_std, plot_name_std);
-% print(1, '-dpng', '-r300', plot_path_mean);
-% print(2, '-dpng', '-r300', plot_path_std);
+print(1, '-dpng', '-r300', plot_path_mean);
+print(2, '-dpng', '-r300', plot_path_std);
+
+% print(1, '-depsc', plot_path_mean);
+% print(2, '-depsc', plot_path_std);
+% print(1, '-dpdf', '~/Desktop/test.pdf');
+
+
 
 
 

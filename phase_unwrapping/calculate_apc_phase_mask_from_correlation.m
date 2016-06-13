@@ -10,8 +10,12 @@ if nargin < 4
     max_std = inf;
 end
 
+% Split the correlation into magnitude and phase.
+[complex_corr_phase, ~] = ...
+    splitComplex(complex_correlation);
+
 % Phase angle
-phase_angle = angle(phaseOnlyFilter(complex_correlation));
+phase_angle = angle(complex_corr_phase);
 
 % Calculate the phase quality
 phase_quality = calculate_phase_quality(phase_angle, kernel_length);
@@ -29,5 +33,9 @@ switch lower(phase_mask_method)
         phase_mask = calculate_phase_mask_gaussian_ellipse...
             (phase_quality, kernel_radius, max_std);
 end
-        
+
+% % Spatial filter 
+% spatial_filter = fftshift(abs(real(...
+%     ifft2(sqrt(abs(phase_mask ./ complex_corr_mag))))));
+%         
 end

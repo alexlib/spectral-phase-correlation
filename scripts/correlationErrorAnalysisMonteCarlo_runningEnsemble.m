@@ -161,7 +161,7 @@ for k = 1 : number_of_images
     
     % Ensemble normalization factor by the standard
     % deviations of the regions and the region size
-    ensemble_norm_factor = std(region_01(:)) * std(region_02(:)) ...
+ ensemble_norm_factor = std(region_01(:)) * std(region_02(:)) ...
         * region_height * region_width;
    
     % This is the complex cross correlation
@@ -255,7 +255,7 @@ for k = 1 : number_of_images
         axis image;
         axis off
         title({'Phase angle', sprintf('Ensemble length: %d', k)});
-        colormap bone;
+        colormap parula;
 
         subplot(2, 3, 2);
         imagesc(apc_filter);
@@ -265,9 +265,8 @@ for k = 1 : number_of_images
 
         subplot(2, 3, 4);
     %     mesh(scc_plane_ensemble ./ max(scc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-        surfl(abs(scc_plane_ensemble_signed) ./ max(abs(scc_plane_ensemble_signed(:))));
+        surf(abs(scc_plane_ensemble_signed) ./ max(abs(scc_plane_ensemble_signed(:))));
         axis square
-        shading interp
         axis off
         title('SCC');
         set(gca, 'view', v);
@@ -278,8 +277,7 @@ for k = 1 : number_of_images
 
         subplot(2, 3, 5);
     %     mesh(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-        surfl(abs(rpc_plane_ensemble_signed) ./ max(abs(rpc_plane_ensemble_signed(:))));
-        shading interp
+        surf(abs(rpc_plane_ensemble_signed) ./ max(abs(rpc_plane_ensemble_signed(:))));
         axis square
         axis off
         title('RPC');
@@ -291,8 +289,7 @@ for k = 1 : number_of_images
 
         subplot(2, 3, 6);
     %     mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black', 'linewidth', 0.1);
-        surfl(apc_plane ./ max(apc_plane(:)));
-        shading interp;
+        surf(apc_plane ./ max(apc_plane(:)));
         axis square
         axis off
         title('APC');
@@ -303,11 +300,6 @@ for k = 1 : number_of_images
         zlim([0, 1]);
 
         drawnow;
-        
-           
-%     plot_name = sprintf('corr_plot_%05d.png', k);
-%     plot_path = fullfile(plot_dir, plot_name);
-%     print(1, '-dpng', '-r300', plot_path);
         
     end
 end 

@@ -1,5 +1,5 @@
 function [PHASE_MASK] = ...
-    calculate_phase_mask_gaussian_elliptical(PHASE_QUALITY, KERNEL_RADIUS, MAX_STD)
+    calculate_phase_mask_gaussian_ellipse(PHASE_QUALITY, KERNEL_RADIUS, MAX_STD)
 	% This function computes a quality-based mask of the phase angle plane of a cross correlation.
 	
     % Defualt to no maximum standard deviation
