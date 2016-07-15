@@ -113,6 +113,9 @@ end
 % Allocate an array for the complex correlation
 ensemble_correlation_complex = zeros(region_height, region_width);
 
+% Allocate the ensemble phase correlation plane
+ensemble_phase_corr = zeros(region_height, region_width);
+
 % Allocate memory for SCC ensemble planes
 scc_plane_ensemble_signed = zeros(region_height, region_width);
 scc_plane_ensemble_abs = zeros(region_height, region_width);
@@ -124,14 +127,18 @@ rpc_plane_ensemble_abs = zeros(region_height, region_width);
 % Weighting matrix for the subpixel fit
 subpixel_weighting_matrix = ones(region_height, region_width);
 
+% Initialize the Standard Deviation guesses for the APC filter
+SY = region_height / 2;
+SX = region_width /2 ;
+
 % Make a new figure if plots are to be generated
 if makePlots
     f = figure(1); 
-    f.InvertHardcopy = 'off';
-    set(gcf, 'color', 0.1 * [1, 1, 1]);
     v = [-17.1000   15.6000];
     z = 1.5;
 end
+
+
 
 
 % Do the processing.
@@ -167,6 +174,9 @@ for k = 1 : number_of_images
     % This is the complex cross correlation
     complex_correlation =  ...
         fftshift(crossCorrelation(region_01, region_02));
+    
+    % Ensemble phase correlation
+    ensemble_phase_corr = ensemble_phase_corr + phaseOnlyFilter(complex_correlation);
     
     % Add to the ensemble
     ensemble_correlation_complex = ensemble_correlation_complex ...
@@ -234,11 +244,22 @@ for k = 1 : number_of_images
         ensemble_correlation_complex, rpc_filter, ...
         subpixel_peak_fit_method_numerical);
     
+%     % Calculate the APC filter
+%     [apc_filter, ~, phase_angle_plane] = ...
+%         calculate_apc_phase_mask_from_correlation(...
+%         ensemble_correlation_complex, apc_kernel_radius,...
+%         'symmetric', rpc_std);
+
+    % Calculate the phase angle
+    phase_angle_plane = angle(ensemble_phase_corr);
+    
     % Calculate the APC filter
-    [apc_filter, ~, phase_angle_plane] = ...
-        calculate_apc_phase_mask_from_correlation(...
-        ensemble_correlation_complex, apc_kernel_radius,...
-        'symmetric', rpc_std);
+    [~, ~, ~, apc_filter] = fit_gaussian_2D(...
+        abs(ensemble_phase_corr));
+    
+%     if k == 1
+%         keyboard
+%     end
 
     % APC displacements
     [ty_apc(k), tx_apc(k), apc_plane] = ...
@@ -264,7 +285,7 @@ for k = 1 : number_of_images
     %     title({'APC filter', sprintf('Diffusion std dev: %0.1f pix', diffusion_std_dev)});
 
         subplot(2, 3, 4);
-    %     mesh(scc_plane_ensemble ./ max(scc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
+%         mesh(scc_plane_ensemble_signed ./ max(scc_plane_ensemble_signed(:)), 'edgecolor', 'black', 'linewidth', 0.1);
         surf(abs(scc_plane_ensemble_signed) ./ max(abs(scc_plane_ensemble_signed(:))));
         axis square
         axis off
@@ -276,7 +297,7 @@ for k = 1 : number_of_images
         zlim([0, 1]);
 
         subplot(2, 3, 5);
-    %     mesh(rpc_plane_ensemble ./ max(rpc_plane_ensemble(:)), 'edgecolor', 'black', 'linewidth', 0.1);
+%         mesh(rpc_plane_ensemble_signed ./ max(rpc_plane_ensemble_signed(:)), 'edgecolor', 'black', 'linewidth', 0.1);
         surf(abs(rpc_plane_ensemble_signed) ./ max(abs(rpc_plane_ensemble_signed(:))));
         axis square
         axis off
@@ -288,7 +309,7 @@ for k = 1 : number_of_images
         zlim([0, 1]);
 
         subplot(2, 3, 6);
-    %     mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black', 'linewidth', 0.1);
+%         mesh(apc_plane ./ max(apc_plane(:)), 'edgecolor', 'black', 'linewidth', 0.1);
         surf(apc_plane ./ max(apc_plane(:)));
         axis square
         axis off
