@@ -1,4 +1,4 @@
-function [AMPLITUDE, STD_DEV_Y, STD_DEV_X, YC, XC, ARRAY] = fit_gaussian_2D(INPUT_SIGNAL, STD_DEV_GUESS)
+function [AMPLITUDE, STD_DEV_Y, STD_DEV_X, YC, XC, OFFSET, ARRAY] = fit_gaussian_2D(INPUT_SIGNAL, STD_DEV_GUESS)
 % This function determines the amplitude and standard deviation
 % of the best fit 2-D Gaussian to a 2-D signal.
 
@@ -19,7 +19,15 @@ if nargin < 2
     % Std devation guess
     std_dev_guess = [region_height / 2, region_width / 2];
 else
-    std_dev_guess = STD_DEV_GUESS;
+    
+    % If only one element is provided for STD DEV GUESS
+    % then assume the user means "symmetric standard deviation"
+    if length(STD_DEV_GUESS) == 1
+        std_dev_guess = STD_DEV_GUESS * [1, 1];
+    else
+        std_dev_guess = STD_DEV_GUESS;
+    end
+    
 end
 
 % Amplitude guess
@@ -48,9 +56,10 @@ STD_DEV_Y = params(2);
 STD_DEV_X = params(3);
 YC = params(4);
 XC = params(5);
+OFFSET = params(6);
 
 % Caluclate the gaussian
-ARRAY = exp(-(X - XC).^2 / (2 * STD_DEV_X^2)) .* exp(-(Y - YC).^2 / (2 * STD_DEV_Y^2));
+ARRAY = (AMPLITUDE * exp(-(X - XC).^2 / (2 * STD_DEV_X^2)) .* exp(-(Y - YC).^2 / (2 * STD_DEV_Y^2))) + OFFSET;
 
 end
 
