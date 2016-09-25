@@ -5,13 +5,13 @@ data_repo = '~/Desktop/spectral-phase-correlation/analysis/data/synthetic/mc';
 fSize = 18;
 
 % Flow rate
-flow_rate = 0.5;
+flow_rate = 5.0;
 
 % Case names
-case_name = sprintf('piv_test_running_ensemble_15_ppf_q_%0.1f_ul_min', flow_rate);
+case_name = sprintf('piv_test_running_ensemble_8_ppf_test_q_%0.1f_ul_min', flow_rate);
 
 % Data directory
-data_dir = fullfile(data_repo, case_name, '128x128', 'apc');
+data_dir = fullfile(data_repo, case_name, '64x64', 'apc');
 
 % Get dir info
 dir_data = dir(data_dir);
@@ -314,8 +314,8 @@ plot_name_mean = sprintf('mean_error_q_%0.1f.png', flow_rate);
 plot_name_std = sprintf('std_error_q_%0.1f.png', flow_rate);
 plot_path_mean = fullfile(plot_dir_mean, plot_name_mean);
 plot_path_std = fullfile(plot_dir_std, plot_name_std);
-print(1, '-dpng', '-r300', plot_path_mean);
-print(2, '-dpng', '-r300', plot_path_std);
+% print(1, '-dpng', '-r300', plot_path_mean);
+% print(2, '-dpng', '-r300', plot_path_std);
 
 % print(1, '-depsc', plot_path_mean);
 % print(2, '-depsc', plot_path_std);

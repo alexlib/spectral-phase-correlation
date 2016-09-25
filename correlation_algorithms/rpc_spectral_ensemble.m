@@ -1,6 +1,6 @@
 function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_RPC_PLANE, ...
     CORR_HEIGHT, CORR_DIAMETER] = ...
-    rpc_ensemble(REGION_MATRIX_01, REGION_MATRIX_02, ...
+    rpc_spectral_ensemble(REGION_MATRIX_01, REGION_MATRIX_02, ...
     CORR_SPECTRALFILTER, PEAK_FIT_METHOD);
 
 
@@ -12,7 +12,7 @@ end
 [region_height, region_width, num_regions] = size(REGION_MATRIX_01);
 
 % Initialize the cross correlation
-SPATIAL_RPC_PLANE = zeros(region_height, region_width);
+cc = zeros(region_height, region_width) + 1i * zeros(region_height, region_width);
 
 % Loop over all the regions
 for k = 1 : num_regions

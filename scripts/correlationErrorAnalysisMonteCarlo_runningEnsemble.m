@@ -2,7 +2,6 @@ function  results_save_path = ...
     correlationErrorAnalysisMonteCarlo_runningEnsemble(MONTE_CARLO_PARAMETERS); 
 
 
-
 % Parse the input structure
 JobFile = MONTE_CARLO_PARAMETERS.JobFile;
 results_save_path = MONTE_CARLO_PARAMETERS.Save_Path;
@@ -63,8 +62,8 @@ image_numbers = start_image : skip_image : end_image;
 [region_height, region_width, number_of_images] = size(imageMatrix1(:, :, image_numbers));
 
 % Read the true translations, which will be saved to file.
-TY_TRUE = Parameters.Translation.Y(image_numbers);
-TX_TRUE = Parameters.Translation.X(image_numbers);
+TY_TRUE = -1 * Parameters.Translation.Y(image_numbers);
+TX_TRUE = -1 * Parameters.Translation.X(image_numbers);
 
 % Create the spatial window
 spatial_window = gaussianWindowFilter(...
@@ -139,8 +138,6 @@ if makePlots
 end
 
 
-
-
 % Do the processing.
 for k = 1 : number_of_images
   
@@ -171,10 +168,15 @@ for k = 1 : number_of_images
  ensemble_norm_factor = std(region_01(:)) * std(region_02(:)) ...
         * region_height * region_width;
    
-    % This is the complex cross correlation
-    complex_correlation =  ...
-        fftshift(crossCorrelation(region_01, region_02));
     
+    f1 = fftshift(fft2(region_01));
+    f2 = fftshift(fft2(region_02));
+    complex_correlation = f1 .* conj(f2);
+    
+%     % This is the complex cross correlation
+%     complex_correlation =  ...
+%         fftshift(crossCorrelation(region_01, region_02));
+%     
     % Ensemble phase correlation
     ensemble_phase_corr = ensemble_phase_corr + phaseOnlyFilter(complex_correlation);
     
@@ -254,8 +256,14 @@ for k = 1 : number_of_images
     phase_angle_plane = angle(ensemble_phase_corr);
     
     % Calculate the APC filter
-    [~, ~, ~, apc_filter] = fit_gaussian_2D(...
-        abs(ensemble_phase_corr));
+    [~, ~, ~, ~, ~, array_offset, array_raw] = ...
+        fit_gaussian_2D(...
+        abs(ensemble_phase_corr), 5);
+    
+    array_sub = array_raw - array_offset;
+    apc_filter = array_sub ./ max(array_sub(:));
+    
+    
     
 %     if k == 1
 %         keyboard
@@ -279,11 +287,16 @@ for k = 1 : number_of_images
         colormap parula;
 
         subplot(2, 3, 2);
-        imagesc(apc_filter);
+        imagesc(real(ensemble_phase_corr));
         axis image;
         axis off
     %     title({'APC filter', sprintf('Diffusion std dev: %0.1f pix', diffusion_std_dev)});
 
+        subplot(2, 3, 3);
+        imagesc(apc_filter);
+        axis image;
+        axis off
+    
         subplot(2, 3, 4);
 %         mesh(scc_plane_ensemble_signed ./ max(scc_plane_ensemble_signed(:)), 'edgecolor', 'black', 'linewidth', 0.1);
         surf(abs(scc_plane_ensemble_signed) ./ max(abs(scc_plane_ensemble_signed(:))));

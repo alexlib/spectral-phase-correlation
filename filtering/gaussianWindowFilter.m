@@ -23,18 +23,30 @@ if nargin < 3
     WINDOWTYPE = 'fraction';
 end
 
+if length(DIMENSIONS) == 1
+    dims = DIMENSIONS * [1, 1];
+else
+    dims = DIMENSIONS;
+end
+
 % Signal height and width
-height = DIMENSIONS(1);
-width = DIMENSIONS(2);
+height = dims(1);
+width = dims(2);
+
+if length(WINDOWSIZE) == 1
+    win_size = WINDOWSIZE * [1, 1];
+else
+    win_size = WINDOWSIZE;
+end
 
 % Determine whether window size is an absolute size or a fraction of the
 % window dimensions
 if strcmp(WINDOWTYPE, 'fraction')
-    windowSizeX = width .* WINDOWSIZE(2);
-    windowSizeY = height .* WINDOWSIZE(1);
+    windowSizeX = width .* win_size(2);
+    windowSizeY = height .* win_size(1);
 elseif strcmp(WINDOWTYPE, 'pixels');
-    windowSizeX = WINDOWSIZE(2);
-    windowSizeY = WINDOWSIZE(1);
+    windowSizeX = win_size(2);
+    windowSizeY = win_size(1);
 else
     error('Invalid window type "%s"\n', WINDOWTYPE);
 end

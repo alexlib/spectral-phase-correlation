@@ -1,6 +1,6 @@
 function JOBLIST = spcJobList_mc()
 
-DefaultJob.JobOptions.ParallelProcessing = true;
+DefaultJob.JobOptions.ParallelProcessing = false;
 DefaultJob.JobOptions.NumberOfDigits = 6;
 DefaultJob.JobOptions.BooleanGenerateParticleImages = false;
 DefaultJob.JobOptions.BooleanRunAnalysis = true;
@@ -11,27 +11,27 @@ DefaultJob.JobOptions.DoAffineTransform = 0;
 DefaultJob.JobOptions.ZeroMeanRegions = true;
 DefaultJob.JobOptions.RunCompiled = true;
 DefaultJob.JobOptions.SuppressMessages = false;
-DefaultJob.JobOptions.MakePlots = true;
+DefaultJob.JobOptions.MakePlots = false;
 
 % Output file base name
 DefaultJob.Filepaths.Output.BaseName = 'piv_test_';
 
 DefaultJob.ImageType = 'synthetic';
 DefaultJob.SetType = 'mc';
-DefaultJob.CaseName = 'piv_test_constant_diffusion';
+DefaultJob.CaseName = 'piv_test_running_ensmeble_q_0.50_ul_min';
 DefaultJob.CorrelationType = 'spc';
-DefaultJob.Parameters.RegionHeight = 128;
-DefaultJob.Parameters.RegionWidth = 128;
+DefaultJob.Parameters.RegionHeight = 64;
+DefaultJob.Parameters.RegionWidth = 64;
 DefaultJob.Parameters.Sets.Start = 1;
 DefaultJob.Parameters.Sets.End = 1;
-DefaultJob.Parameters.Sets.ImagesPerSet = 1;
+DefaultJob.Parameters.Sets.ImagesPerSet = 100;
 
 DefaultJob.Parameters.Images.Start = 1;
 DefaultJob.Parameters.Images.End = 1;
 DefaultJob.Parameters.Images.Skip = 1;
 
 DefaultJob.Parameters.RepositoryPath =  '~/Desktop/piv_test_images';
-DefaultJob.Parameters.Processing.SpatialWindowFraction = [0.3 0.3];
+DefaultJob.Parameters.Processing.SpatialWindowFraction = [0.4 0.4];
 DefaultJob.Parameters.Processing.SpatialWindowType = 'fraction';
 DefaultJob.Parameters.Processing.SpatialRPCDiameter = 2.8;
 DefaultJob.Parameters.Processing.PhaseFilterAlgorithm = 'MEAN';
@@ -57,7 +57,7 @@ DefaultJob.Parameters.Processing.Noise.Std = 0.00;
 % JOB 3
 SegmentItem = DefaultJob;
 SegmentItem.CorrelationType = 'apc';
-SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.5 * [1 1];
+SegmentItem.Parameters.Processing.SpatialWindowFraction = 0.4 * [1 1];
 SegmentItem.Parameters.Processing.PhaseUnwrappingAlgorithm = 'Goldstein';
 JOBLIST(1) = SegmentItem;
 

@@ -22,6 +22,10 @@ function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_RPC_PLANE, ...
 %       See the function subpixel.m for details on this calculation.
 %
 
+if nargin < 4
+    PEAK_FIT_METHOD = 1;
+end
+
 % Calculate size of interrogation regions (homogeneous) (pixels)
 [height, width] = size(IMAGE1);
 

@@ -1,7 +1,6 @@
-function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_RPC_PLANE, ...
+function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_SCC_PLANE, ...
     CORR_HEIGHT, CORR_DIAMETER] = ...
-    rpc_ensemble(REGION_MATRIX_01, REGION_MATRIX_02, ...
-    CORR_SPECTRALFILTER, PEAK_FIT_METHOD);
+    scc_spatial_ensemble(REGION_MATRIX_01, REGION_MATRIX_02, PEAK_FIT_METHOD);
 
 
 if nargin < 4
@@ -12,7 +11,7 @@ end
 [region_height, region_width, num_regions] = size(REGION_MATRIX_01);
 
 % Initialize the cross correlation
-SPATIAL_RPC_PLANE = zeros(region_height, region_width);
+SPATIAL_SCC_PLANE = zeros(region_height, region_width);
 
 % Loop over all the regions
 for k = 1 : num_regions
@@ -26,18 +25,18 @@ for k = 1 : num_regions
    f2 = fft2(region_02);
    
    % Add the complex correlation to the ensemble
-   cc = cc + f1 .* conj(f2);
-    
+   cc = f1 .* conj(f2);
+   
+   % Spatial SCC
+   SPATIAL_SCC_PLANE = SPATIAL_SCC_PLANE + fftshift(abs(ifft2(cc)));
+   
 end
-
-SPATIAL_RPC_PLANE = fftshift(abs(ifft2(CORR_SPECTRALFILTER .* ...
-    fftshift(phaseOnlyFilter(cc)))));
 
 % Subpixel fit
 % Prana subpixel implmentation of the sub-pixel fit
 [TRANSLATION_X, TRANSLATION_Y, CORR_HEIGHT, CORR_DIAMETER] = ...
-    subpixel(SPATIAL_RPC_PLANE, ...
-    region_width, region_height, ones(size(SPATIAL_RPC_PLANE)), PEAK_FIT_METHOD, ...
+    subpixel(SPATIAL_SCC_PLANE, ...
+    region_width, region_height, ones(size(SPATIAL_SCC_PLANE)), PEAK_FIT_METHOD, ...
     0, sqrt(8) * [1, 1]);
 
 

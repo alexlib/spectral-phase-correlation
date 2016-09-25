@@ -1,6 +1,6 @@
 function [TRANSLATION_Y, TRANSLATION_X, SPATIAL_RPC_PLANE, ...
     CORR_HEIGHT, CORR_DIAMETER] = ...
-    rpc_ensemble(REGION_MATRIX_01, REGION_MATRIX_02, ...
+    rpc_spatial_ensemble(REGION_MATRIX_01, REGION_MATRIX_02, ...
     CORR_SPECTRALFILTER, PEAK_FIT_METHOD);
 
 
@@ -26,12 +26,12 @@ for k = 1 : num_regions
    f2 = fft2(region_02);
    
    % Add the complex correlation to the ensemble
-   cc = cc + f1 .* conj(f2);
+   cc = f1 .* conj(f2);
+   
+   SPATIAL_RPC_PLANE = SPATIAL_RPC_PLANE + fftshift(abs(ifft2(CORR_SPECTRALFILTER .* ...
+    fftshift(phaseOnlyFilter(cc)))));
     
 end
-
-SPATIAL_RPC_PLANE = fftshift(abs(ifft2(CORR_SPECTRALFILTER .* ...
-    fftshift(phaseOnlyFilter(cc)))));
 
 % Subpixel fit
 % Prana subpixel implmentation of the sub-pixel fit
