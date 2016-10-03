@@ -17,7 +17,7 @@ xdata = [Y(:), X(:)];
 
 if nargin < 2
     % Std devation guess
-    std_dev_guess = [region_height / 2, region_width / 2];
+    std_dev_guess = [region_height / 4, region_width / 4];
 else
     
     % If only one element is provided for STD DEV GUESS
@@ -52,8 +52,8 @@ params = lsqcurvefit(@gauss_fun,x0,xdata,ydata, [], [], opts);
 
 % Outputs
 AMPLITUDE = params(1);
-STD_DEV_Y = params(2);
-STD_DEV_X = params(3);
+STD_DEV_Y = abs(params(2));
+STD_DEV_X = abs(params(3));
 YC = params(4);
 XC = params(5);
 OFFSET = params(6);
