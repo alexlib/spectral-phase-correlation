@@ -1,9 +1,9 @@
-function [u,v,M,D,DX,DY, PEAK_ANGLE, PEAK_ECCENTRICITY] = subpixel(SPATIAL_CORRELATION_PLANE,...
+function [U,V,M,D,DX,DY, PEAK_ANGLE, PEAK_ECCENTRICITY] = subpixel(SPATIAL_CORRELATION_PLANE,...
     CORRELATION_WIDTH, CORRELATION_HEIGHT, WEIGHTING_MATRIX, ...
     PEAK_FIT_METHOD, FIND_MULTIPLE_PEAKS, PARTICLE_DIAMETER_2D)
 
 if nargin < 5
-    PEAK_FIT_METHOD = 1
+    PEAK_FIT_METHOD = 1;
 end
 
 %intialize indices
@@ -308,6 +308,10 @@ else
     end
 end
 
+% Invert the answers
+U = -1 * u;
+V = -1 * v;
+
 end
 
 function F = leastsquares2D(x,mapint_i,locxy_i,method)
@@ -386,5 +390,7 @@ elseif method==4
 end
 % compare the Gaussian curve to the actual pixel intensities
 F=mapint_i-gauss_int;
+
+
 
 end
