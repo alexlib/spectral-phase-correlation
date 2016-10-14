@@ -302,7 +302,7 @@ parfor k = 1 : num_regions
     % of the complex correlation, 
     % which should represent the SNR versus wavenumber.
     [~, APC_STD_Y(k), APC_STD_X(k)] =...
-        fit_gaussian_2D(abs(spectral_corr));
+        fit_gaussian_2D(abs(spectral_corr) ./ max(abs(spectral_corr(:))));
    
 end
 
