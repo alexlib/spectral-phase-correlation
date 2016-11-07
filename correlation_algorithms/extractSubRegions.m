@@ -1,6 +1,11 @@
 function REGIONMATRIX = extractSubRegions(IMAGE, REGIONSIZE, GRID_POINTS_X, GRID_POINTS_Y)
 % This function extracts subregions from an image.
 
+% Load the image if it's passed as a string
+if ischar(IMAGE)
+    IMAGE = double(imread(IMAGE));
+end
+
 % Determine the size of the image.
 [imageHeight, imageWidth, ~] = size(IMAGE);
 

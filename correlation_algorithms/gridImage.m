@@ -3,8 +3,10 @@ function [X, Y] = gridImage(IMAGESIZE, GRIDSPACING, GRIDBUFFERY, GRIDBUFFERX, MA
 % Default to no mask
 if nargin < 5
     MASK = ones(IMAGESIZE);
+elseif isempty(MASK)
+    MASK = ones(IMAGESIZE);
 end
-
+   
 if nargin < 4 || isempty(GRIDBUFFERX);
     GRIDBUFFERX = [ 0 0 ];
 end

@@ -29,7 +29,7 @@ for k = 1 : num_regions
     
 end
 
-SPATIAL_RPC_PLANE = fftshift(abs(ifft(cc)));
+SPATIAL_RPC_PLANE = fftshift(abs(ifft2(cc)));
 
 % Subpixel fit
 % Prana subpixel implmentation of the sub-pixel fit
