@@ -1,6 +1,15 @@
 function [UVAL, VVAL, ISOUTLIER] = validateField_prana(X, Y, U, V, UOD_EXPECTED_DIFF)
 % Size of the grid
-[gridHeight, gridWidth] = size(X);
+
+% Default value
+if nargin < 5
+    UOD_EXPECTED_DIFF = 2 * [1, 1];
+end
+
+% Assume symmetric
+if length(UOD_EXPECTED_DIFF) == 1
+    UOD_EXPECTED_DIFF = UOD_EXPECTED_DIFF * [1, 1];
+end
 
 % Hard code a bunch of validation parameters
 Eval = zeros(size(U));
@@ -18,22 +27,13 @@ BootKMax = 0;
 c = zeros(length(X(:)), 1);
 d = zeros(length(X(:)), 1);
 
-v = -V;
-y = flipud(Y);
+% v = -V;
+% y = flipud(Y);
 
-[UvalRaw, VvalRaw, IsOutlierRaw] = VAL(X(:), y(:), U(:), v(:), Eval(:), c(:), d(:),ThreshSwitch,UODswitch,BootSwitch,extraPeakSwitch,...
+% Do UOD
+[UVAL, VVAL, ISOUTLIER] = VAL(X(:), Y(:), U(:), V(:), Eval(:), c(:), d(:),ThreshSwitch,UODswitch,BootSwitch,extraPeakSwitch,...
                         Uthresh,Vthresh,UODwinsize,UODthresh, UOD_EXPECTED_DIFF, BootPer,BootIter,BootKMax);
 
-
-% % Vector validation
-% [UvalRaw, VvalRaw, RvalRaw, ISOUTLIER] = VAL_2d3c(X(:), Y(:), U(:), V(:), W(:), Eval(:), C(:), D(:), ThreshSwitch,UODswitch,...
-%     BootSwitch, extraPeakSwitch, Uthresh, Vthresh, UODwinsize, UODthresh, BootPer,BootIter,BootKMax);
-
-% Reshape matrices.
-UVAL = flipud(reshape(UvalRaw, [gridHeight, gridWidth]));
-VVAL = -1 * flipud(reshape(VvalRaw, [gridHeight, gridWidth]));
-ISOUTLIER = flipud(reshape(IsOutlierRaw, [gridHeight, gridWidth]));
-   
 end
 
 function [Uval,Vval,Evalval,Cval,Dval,DXval,DYval,ALPHAval] = VAL(X, Y, U, V, Eval,C,D,Threshswitch,UODswitch,Bootswitch,extrapeaks,Uthresh,Vthresh,UODwinsize,UODthresh, UOD_EXPECTED_DIFF, Bootper,Bootiter,Bootkmax,DX,DY,ALPHA)
